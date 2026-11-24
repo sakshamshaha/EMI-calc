@@ -60,7 +60,8 @@ fun GlassBottomBar(
     modifier: Modifier = Modifier
 ) {
     val items = NavDestination.items
-    val selectedIndex = items.indexOfFirst { it.route == currentRoute }.coerceAtLeast(0)
+    val effectiveRoute = if (currentRoute == "prepayment_simulator") NavDestination.Tools.route else currentRoute
+    val selectedIndex = items.indexOfFirst { it.route == effectiveRoute }.coerceAtLeast(0)
     val effectsLevel = LocalEffectsLevel.current
     val reduceMotion = LocalReduceMotion.current
     val hapticsEnabled = LocalHapticsEnabled.current
@@ -137,7 +138,7 @@ fun GlassBottomBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             items.forEachIndexed { index, destination ->
-                val isSelected = destination.route == currentRoute
+                val isSelected = destination.route == effectiveRoute
                 val interactionSource = remember { MutableInteractionSource() }
 
                 Box(

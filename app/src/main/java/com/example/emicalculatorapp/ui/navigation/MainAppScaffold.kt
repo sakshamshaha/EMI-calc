@@ -64,6 +64,7 @@ import com.example.emicalculatorapp.ui.theme.LuminousCyan
 import com.example.emicalculatorapp.ui.theme.SpaceGroteskFamily
 import com.example.emicalculatorapp.ui.theme.TextPrimary
 import com.example.emicalculatorapp.ui.theme.TextSecondary
+import com.example.emicalculatorapp.ui.tools.PrepaymentScreen
 import com.example.emicalculatorapp.ui.tools.ToolsHubScreen
 import com.example.emicalculatorapp.viewmodel.EMIViewModel
 
@@ -87,13 +88,18 @@ fun MainAppScaffold(
 
     var showSettingsSheet by remember { mutableStateOf(false) }
 
-    // Intercept Back button: if not on Calculate tab, return to Calculate first
+    // Intercept Back button: if in sub-screen (Prepayment Simulator), return to Tools Hub.
+    // Otherwise return to Calculate first before exiting.
     BackHandler(enabled = currentRoute != NavDestination.Calculate.route) {
-        navController.navigate(NavDestination.Calculate.route) {
-            popUpTo(NavDestination.Calculate.route) {
-                inclusive = false
+        if (currentRoute == "prepayment_simulator") {
+            navController.popBackStack()
+        } else {
+            navController.navigate(NavDestination.Calculate.route) {
+                popUpTo(NavDestination.Calculate.route) {
+                    inclusive = false
+                }
+                launchSingleTop = true
             }
-            launchSingleTop = true
         }
     }
 
@@ -221,7 +227,18 @@ fun MainAppScaffold(
                     }
 
                     composable(NavDestination.Tools.route) {
-                        ToolsHubScreen()
+                        ToolsHubScreen(
+                            onNavigateToPrepayment = {
+                                navController.navigate("prepayment_simulator")
+                            }
+                        )
+                    }
+
+                    composable("prepayment_simulator") {
+                        PrepaymentScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            viewModel = sharedViewModel
+                        )
                     }
 
                     composable(NavDestination.Saved.route) {

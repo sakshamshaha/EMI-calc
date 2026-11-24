@@ -15,8 +15,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.ripple
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ReportProblem
@@ -24,6 +27,7 @@ import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +54,7 @@ import com.example.emicalculatorapp.ui.theme.TextSecondary
  */
 @Composable
 fun ToolsHubScreen(
+    onNavigateToPrepayment: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -78,13 +83,15 @@ fun ToolsHubScreen(
             modifier = Modifier.padding(top = 4.dp, bottom = 18.dp)
         )
 
-        // 1. Prepayment Simulator
+        // 1. Prepayment Simulator (Phase 3: Active)
         ToolHubCard(
             title = "Prepayment & Debt-Free Simulator",
-            description = "Simulate extra monthly contributions or lump sums to see how many years and lakhs of interest you cut off.",
+            description = "Simulate extra monthly contributions, lump-sum prepayments, and annual step-up % to see how many years and lakhs of interest you cut off.",
             icon = Icons.Default.Speed,
-            iconTint = LuminousCyan,
-            statusBadge = "Coming in Phase 3"
+            iconTint = MintGreen,
+            statusBadge = "LIVE NOW",
+            badgeColor = MintGreen,
+            onClick = onNavigateToPrepayment
         )
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -151,9 +158,27 @@ private fun ToolHubCard(
     description: String,
     icon: ImageVector,
     iconTint: Color,
-    statusBadge: String
+    statusBadge: String,
+    badgeColor: Color = TextSecondary,
+    onClick: (() -> Unit)? = null
 ) {
-    GlassCard(modifier = Modifier.fillMaxWidth()) {
+    GlassCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (onClick != null) {
+                    Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .clickable(
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                            indication = ripple(color = iconTint),
+                            onClick = onClick
+                        )
+                } else {
+                    Modifier
+                }
+            )
+    ) {
         Column(modifier = Modifier.padding(18.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -193,15 +218,16 @@ private fun ToolHubCard(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
-                        .background(Color.White.copy(alpha = 0.08f))
+                        .background(badgeColor.copy(alpha = 0.12f))
+                        .border(1.dp, badgeColor.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
                         text = statusBadge,
                         fontFamily = SpaceGroteskFamily,
                         fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextSecondary
+                        fontWeight = FontWeight.Bold,
+                        color = badgeColor
                     )
                 }
             }

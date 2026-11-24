@@ -12,17 +12,38 @@ import com.example.emicalculatorapp.model.EMICalculationResult
 import com.example.emicalculatorapp.model.FullAmortizationSchedule
 import com.example.emicalculatorapp.model.LoanCategory
 import com.example.emicalculatorapp.util.CurrencyFormatter
+import com.example.emicalculatorapp.model.PrepaymentCalculator
+import com.example.emicalculatorapp.model.PrepaymentParams
+import com.example.emicalculatorapp.model.PrepaymentSimulationResult
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.round
+
+private data class LoanScheduleParams(
+    val principal: Double,
+    val annualRate: Double,
+    val tenure: Int,
+    val isYears: Boolean
+)
+
+private data class LoanPrepaymentConfig(
+    val principal: Double,
+    val annualRate: Double,
+    val tenure: Int,
+    val isYears: Boolean,
+    val params: PrepaymentParams
+)
 
 class EMIViewModel : ViewModel() {
 
@@ -48,11 +69,75 @@ class EMIViewModel : ViewModel() {
     val result: StateFlow<EMICalculationResult> = _result.asStateFlow()
 
     // Off-thread Full Amortization Schedule
-    private var scheduleJob: Job? = null
     private val _fullSchedule = MutableStateFlow(
         calculateFullSchedule(4500000.0, 8.55, 20, true)
     )
     val fullSchedule: StateFlow<FullAmortizationSchedule> = _fullSchedule.asStateFlow()
+
+    // Prepayment Parameters & Accelerated Simulation Result
+    private val _prepaymentParams = MutableStateFlow(PrepaymentParams())
+    val prepaymentParams: StateFlow<PrepaymentParams> = _prepaymentParams.asStateFlow()
+
+    private val _prepaymentResult = MutableStateFlow(
+        PrepaymentCalculator.calculatePrepaymentSimulation(
+            principal = 4500000.0,
+            annualRate = 8.55,
+            tenure = 20,
+            isYears = true,
+            params = PrepaymentParams()
+        )
+    )
+    val prepaymentResult: StateFlow<PrepaymentSimulationResult> = _prepaymentResult.asStateFlow()
+
+    init {
+        // Cancellable Full Schedule Calculation:
+        // Automatically cancels stale computations when slider is rapidly dragged.
+        // distinctUntilChanged ensures redundant inputs are skipped.
+        viewModelScope.launch {
+            combine(
+                _loanAmount,
+                _interestRate,
+                _tenureValue,
+                _isYearMode
+            ) { p, r, t, ym ->
+                LoanScheduleParams(p, r, t, ym)
+            }
+                .distinctUntilChanged()
+                .collectLatest { config ->
+                    val schedule = withContext(Dispatchers.Default) {
+                        calculateFullSchedule(config.principal, config.annualRate, config.tenure, config.isYears)
+                    }
+                    _fullSchedule.value = schedule
+                }
+        }
+
+        // Cancellable Prepayment Simulation:
+        // Automatically cancels and recomputes off-thread on Dispatchers.Default.
+        viewModelScope.launch {
+            combine(
+                _loanAmount,
+                _interestRate,
+                _tenureValue,
+                _isYearMode,
+                _prepaymentParams
+            ) { p, r, t, ym, params ->
+                LoanPrepaymentConfig(p, r, t, ym, params)
+            }
+                .distinctUntilChanged()
+                .collectLatest { config ->
+                    val simResult = withContext(Dispatchers.Default) {
+                        PrepaymentCalculator.calculatePrepaymentSimulation(
+                            principal = config.principal,
+                            annualRate = config.annualRate,
+                            tenure = config.tenure,
+                            isYears = config.isYears,
+                            params = config.params
+                        )
+                    }
+                    _prepaymentResult.value = simResult
+                }
+        }
+    }
 
     fun selectCategory(category: LoanCategory) {
         _selectedCategory.value = category
@@ -102,6 +187,46 @@ class EMIViewModel : ViewModel() {
         selectCategory(LoanCategory.HOME)
     }
 
+    // Prepayment Controls
+    fun setExtraMonthly(amount: Double) {
+        val clamped = amount.coerceAtLeast(0.0)
+        if (_prepaymentParams.value.extraMonthly == clamped) return
+        _prepaymentParams.value = _prepaymentParams.value.copy(extraMonthly = clamped)
+    }
+
+    fun setLumpSumAmount(amount: Double) {
+        val clamped = amount.coerceAtLeast(0.0)
+        if (_prepaymentParams.value.lumpSumAmount == clamped) return
+        _prepaymentParams.value = _prepaymentParams.value.copy(lumpSumAmount = clamped)
+    }
+
+    fun setLumpSumMonth(month: Int) {
+        val maxMonth = if (_isYearMode.value) _tenureValue.value * 12 else _tenureValue.value
+        val clamped = month.coerceIn(1, maxMonth)
+        if (_prepaymentParams.value.lumpSumMonth == clamped) return
+        _prepaymentParams.value = _prepaymentParams.value.copy(lumpSumMonth = clamped)
+    }
+
+    fun setLumpSumEnabled(enabled: Boolean) {
+        if (_prepaymentParams.value.isLumpSumEnabled == enabled) return
+        _prepaymentParams.value = _prepaymentParams.value.copy(isLumpSumEnabled = enabled)
+    }
+
+    fun setStepUpPercent(percent: Double) {
+        val clamped = percent.coerceIn(0.0, 20.0)
+        if (_prepaymentParams.value.stepUpPercent == clamped) return
+        _prepaymentParams.value = _prepaymentParams.value.copy(stepUpPercent = clamped)
+    }
+
+    fun setStepUpEnabled(enabled: Boolean) {
+        if (_prepaymentParams.value.isStepUpEnabled == enabled) return
+        _prepaymentParams.value = _prepaymentParams.value.copy(isStepUpEnabled = enabled)
+    }
+
+    fun resetPrepayment() {
+        _prepaymentParams.value = PrepaymentParams()
+    }
+
     private fun recalculate() {
         val p = _loanAmount.value
         val r = _interestRate.value
@@ -114,12 +239,6 @@ class EMIViewModel : ViewModel() {
             tenure = t,
             isYears = ym
         )
-
-        scheduleJob?.cancel()
-        scheduleJob = viewModelScope.launch(Dispatchers.Default) {
-            val schedule = calculateFullSchedule(p, r, t, ym)
-            _fullSchedule.value = schedule
-        }
     }
 
     companion object {
@@ -157,7 +276,7 @@ class EMIViewModel : ViewModel() {
             val yearlyVelocity = emi * 12.0
 
             // Generate Amortization Milestones dynamically
-            val milestones = generateAmortizationMilestones(principal, r, emi, n)
+            val milestones = com.example.emicalculatorapp.model.AmortizationScheduleCalculator.generateAmortizationMilestones(principal, r, emi, n)
 
             return EMICalculationResult(
                 monthlyEMI = emi,
@@ -170,77 +289,6 @@ class EMIViewModel : ViewModel() {
             )
         }
 
-        private fun generateAmortizationMilestones(
-            principal: Double,
-            monthlyRate: Double,
-            monthlyEMI: Double,
-            totalMonths: Int
-        ): List<AmortizationMilestone> {
-            val totalYears = (totalMonths / 12).coerceAtLeast(1)
-            val currentCalendarYear = Calendar.getInstance().get(Calendar.YEAR)
-
-            val milestoneYears = listOf(1, 5, 10, totalYears)
-                .filter { it <= totalYears }
-                .distinct()
-                .sorted()
-
-            return milestoneYears.map { yr ->
-                val endMonth = (yr * 12).coerceAtMost(totalMonths)
-                val startMonth = ((yr - 1) * 12)
-
-                // Closed-form remaining balance (O(1) calculation)
-                val balanceEnd = calculateRemainingBalance(principal, monthlyRate, monthlyEMI, endMonth)
-                val balanceStart = calculateRemainingBalance(principal, monthlyRate, monthlyEMI, startMonth)
-
-                val principalPaidInYear = (balanceStart - balanceEnd).coerceAtLeast(0.0)
-                val monthsInYear = endMonth - startMonth
-                val totalPaidInYear = monthlyEMI * monthsInYear
-                val interestPaidInYear = (totalPaidInYear - principalPaidInYear).coerceAtLeast(0.0)
-
-                val totalPrincipalPaidSoFar = (principal - balanceEnd).coerceAtLeast(0.0)
-                val totalInterestPaidSoFar = ((monthlyEMI * endMonth) - totalPrincipalPaidSoFar).coerceAtLeast(0.0)
-
-                val yearTotal = principalPaidInYear + interestPaidInYear
-                val principalPctInYear = if (yearTotal > 0) (principalPaidInYear / yearTotal).toFloat() * 100f else 50f
-                val interestPctInYear = (100f - principalPctInYear).coerceAtLeast(0f)
-                val remainingPct = if (principal > 0) ((balanceEnd / principal) * 100.0).toFloat().coerceIn(0f, 100f) else 0f
-
-                val label = when (yr) {
-                    1 -> "Year 1 (End of $currentCalendarYear)"
-                    5 -> "Year 5 (End of ${currentCalendarYear + 4})"
-                    10 -> "Year 10 (Crossover Point)"
-                    totalYears -> "Year $totalYears (Payoff Completion)"
-                    else -> "Year $yr"
-                }
-
-                AmortizationMilestone(
-                    year = yr,
-                    label = label,
-                    remainingBalance = balanceEnd,
-                    principalPaidSoFar = totalPrincipalPaidSoFar,
-                    interestPaidSoFar = totalInterestPaidSoFar,
-                    principalPercentInYear = principalPctInYear,
-                    interestPercentInYear = interestPctInYear,
-                    remainingPercentOfPrincipal = remainingPct
-                )
-            }
-        }
-
-        private fun calculateRemainingBalance(
-            principal: Double,
-            r: Double,
-            emi: Double,
-            months: Int
-        ): Double {
-            if (months <= 0) return principal
-            if (r <= 0.0) {
-                return (principal - (emi * months)).coerceAtLeast(0.0)
-            }
-            val factor = (1.0 + r).pow(months.toDouble())
-            val balance = principal * factor - emi * (factor - 1.0) / r
-            return balance.coerceAtLeast(0.0)
-        }
-
         /**
          * Calculates full month-by-month and year-by-year amortization schedule.
          * Satisfies exact balance clearing (final balance is 0.0) and closed conservation of capital.
@@ -250,114 +298,22 @@ class EMIViewModel : ViewModel() {
             annualRate: Double,
             tenure: Int,
             isYears: Boolean
-        ): FullAmortizationSchedule {
-            val totalMonths = if (isYears) tenure * 12 else tenure
-            if (totalMonths <= 0 || principal <= 0.0) {
-                return FullAmortizationSchedule(
-                    principal = principal,
-                    annualRate = annualRate,
-                    totalMonths = 0,
-                    monthlyEMI = 0.0,
-                    totalInterest = 0.0,
-                    totalPayment = 0.0,
-                    years = emptyList(),
-                    allMonths = emptyList()
-                )
-            }
+        ): FullAmortizationSchedule = com.example.emicalculatorapp.model.AmortizationScheduleCalculator.calculateFullSchedule(
+            principal, annualRate, tenure, isYears
+        )
 
-            val r = (annualRate / 12.0) / 100.0
-            val monthlyEMI: Double = if (r > 0.0) {
-                val factor = (1.0 + r).pow(totalMonths.toDouble())
-                (principal * r * factor) / (factor - 1.0)
-            } else {
-                principal / totalMonths.toDouble()
-            }
-
-            var currentBalance = principal
-            val allMonths = ArrayList<AmortizationMonth>(totalMonths)
-            val years = ArrayList<AmortizationYear>((totalMonths + 11) / 12)
-
-            var yearOpeningBalance = principal
-            var yearPrincipalPaid = 0.0
-            var yearInterestPaid = 0.0
-            var yearTotalPayment = 0.0
-            val currentYearMonths = ArrayList<AmortizationMonth>(12)
-
-            var cumulativePrincipal = 0.0
-            var cumulativeInterest = 0.0
-
-            for (m in 1..totalMonths) {
-                val interest = if (r > 0.0) currentBalance * r else 0.0
-                val isLastMonth = m == totalMonths
-
-                val principalPart: Double
-                val actualEMI: Double
-                val newBalance: Double
-
-                if (isLastMonth) {
-                    principalPart = currentBalance
-                    actualEMI = principalPart + interest
-                    newBalance = 0.0
-                } else {
-                    principalPart = (monthlyEMI - interest).coerceIn(0.0, currentBalance)
-                    actualEMI = monthlyEMI
-                    newBalance = (currentBalance - principalPart).coerceAtLeast(0.0)
-                }
-
-                val yearIndex = ((m - 1) / 12) + 1
-                val monthData = AmortizationMonth(
-                    monthIndex = m,
-                    yearIndex = yearIndex,
-                    openingBalance = currentBalance,
-                    emi = actualEMI,
-                    principalPaid = principalPart,
-                    interestPaid = interest,
-                    closingBalance = newBalance
-                )
-
-                allMonths.add(monthData)
-                currentYearMonths.add(monthData)
-
-                yearPrincipalPaid += principalPart
-                yearInterestPaid += interest
-                yearTotalPayment += actualEMI
-                cumulativePrincipal += principalPart
-                cumulativeInterest += interest
-
-                currentBalance = newBalance
-
-                // Close year bucket
-                if (m % 12 == 0 || isLastMonth) {
-                    years.add(
-                        AmortizationYear(
-                            year = yearIndex,
-                            openingBalance = yearOpeningBalance,
-                            totalPrincipalPaid = yearPrincipalPaid,
-                            totalInterestPaid = yearInterestPaid,
-                            totalPayment = yearTotalPayment,
-                            closingBalance = currentBalance,
-                            months = ArrayList(currentYearMonths)
-                        )
-                    )
-                    yearOpeningBalance = currentBalance
-                    yearPrincipalPaid = 0.0
-                    yearInterestPaid = 0.0
-                    yearTotalPayment = 0.0
-                    currentYearMonths.clear()
-                }
-            }
-
-            return FullAmortizationSchedule(
-                principal = principal,
-                annualRate = annualRate,
-                totalMonths = totalMonths,
-                monthlyEMI = monthlyEMI,
-                totalInterest = cumulativeInterest,
-                totalPayment = cumulativePrincipal + cumulativeInterest,
-                years = years,
-                allMonths = allMonths
-            )
-        }
+        /**
+         * Simulates prepayment scenarios (extra monthly EMI, lump-sum, annual step-up).
+         */
+        fun calculatePrepaymentSimulation(
+            principal: Double,
+            annualRate: Double,
+            tenure: Int,
+            isYears: Boolean,
+            params: PrepaymentParams
+        ): PrepaymentSimulationResult = PrepaymentCalculator.calculatePrepaymentSimulation(
+            principal, annualRate, tenure, isYears, params
+        )
 
         // Formatting delegations
         fun formatIndianCurrency(amount: Double, includeDecimals: Boolean = false): String =

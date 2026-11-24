@@ -6,7 +6,10 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
 import android.net.Uri
+import android.os.Build
 import androidx.core.content.FileProvider
+import androidx.core.content.res.ResourcesCompat
+import com.example.emicalculatorapp.R
 import com.example.emicalculatorapp.data.settings.NumberFormatStyle
 import com.example.emicalculatorapp.model.FullAmortizationSchedule
 import com.example.emicalculatorapp.viewmodel.EMIViewModel
@@ -21,6 +24,7 @@ import java.util.Locale
 /**
  * High-performance off-thread PDF Document Generator for EMIverse Amortization Schedules.
  * Produces clean, paginated A4 documents compatible with all standard PDF viewers.
+ * Uses bundled typefaces with guaranteed Rupee (₹) glyph rendering and exact number formatting.
  */
 object AmortizationPdfGenerator {
 
@@ -35,37 +39,53 @@ object AmortizationPdfGenerator {
     ): Uri = withContext(Dispatchers.IO) {
         val document = PdfDocument()
 
+        // Load bundled typefaces that natively support the Indian Rupee symbol (₹ / \u20B9)
+        val interTypeface = try {
+            ResourcesCompat.getFont(context, R.font.inter)
+        } catch (e: Exception) {
+            null
+        }
+        val spaceGroteskTypeface = try {
+            ResourcesCompat.getFont(context, R.font.space_grotesk)
+        } catch (e: Exception) {
+            null
+        }
+
+        val baseBoldTypeface = spaceGroteskTypeface ?: Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        val baseRegularTypeface = interTypeface ?: Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+
         val titlePaint = Paint().apply {
             color = Color.rgb(18, 18, 30)
             textSize = 18f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            typeface = baseBoldTypeface
             isAntiAlias = true
         }
 
         val headerPaint = Paint().apply {
             color = Color.rgb(90, 95, 120)
             textSize = 10f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+            typeface = baseRegularTypeface
             isAntiAlias = true
         }
 
         val sectionPaint = Paint().apply {
             color = Color.rgb(139, 92, 246) // Electric Violet
             textSize = 12f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            typeface = baseBoldTypeface
             isAntiAlias = true
         }
 
         val textPaint = Paint().apply {
             color = Color.rgb(30, 35, 45)
             textSize = 9f
+            typeface = baseRegularTypeface
             isAntiAlias = true
         }
 
         val boldTextPaint = Paint().apply {
             color = Color.rgb(20, 25, 35)
             textSize = 9f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            typeface = baseBoldTypeface
             isAntiAlias = true
         }
 
@@ -87,7 +107,20 @@ object AmortizationPdfGenerator {
         val footerPaint = Paint().apply {
             color = Color.rgb(130, 135, 150)
             textSize = 8f
+            typeface = baseRegularTypeface
             isAntiAlias = true
+        }
+
+        // Verify Rupee glyph rendering support; fallback to "Rs." if system font cannot render it
+        val supportsRupee = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            boldTextPaint.hasGlyph("₹")
+        } else {
+            true
+        }
+
+        fun formatPdfCurrency(amount: Double): String {
+            val formatted = EMIViewModel.formatCurrency(amount, numberFormat)
+            return if (supportsRupee) formatted else formatted.replace("₹", "Rs.")
         }
 
         val years = schedule.years
@@ -137,7 +170,7 @@ object AmortizationPdfGenerator {
         canvas.drawText("TENURE", col3, sy, headerPaint)
 
         sy += 14f
-        canvas.drawText(EMIViewModel.formatCurrency(schedule.principal, numberFormat), col1, sy, boldTextPaint)
+        canvas.drawText(formatPdfCurrency(schedule.principal), col1, sy, boldTextPaint)
         canvas.drawText("${schedule.annualRate}% p.a.", col2, sy, boldTextPaint)
         canvas.drawText("${schedule.totalMonths / 12} Years (${schedule.totalMonths} Months)", col3, sy, boldTextPaint)
 
@@ -148,9 +181,9 @@ object AmortizationPdfGenerator {
         canvas.drawText("TOTAL PAYMENT", col3, sy, headerPaint)
 
         sy += 14f
-        canvas.drawText(EMIViewModel.formatCurrency(schedule.monthlyEMI, numberFormat), col1, sy, boldTextPaint)
-        canvas.drawText(EMIViewModel.formatCurrency(schedule.totalInterest, numberFormat), col2, sy, boldTextPaint)
-        canvas.drawText(EMIViewModel.formatCurrency(schedule.totalPayment, numberFormat), col3, sy, boldTextPaint)
+        canvas.drawText(formatPdfCurrency(schedule.monthlyEMI), col1, sy, boldTextPaint)
+        canvas.drawText(formatPdfCurrency(schedule.totalInterest), col2, sy, boldTextPaint)
+        canvas.drawText(formatPdfCurrency(schedule.totalPayment), col3, sy, boldTextPaint)
 
         y = summaryBoxTop + summaryBoxHeight + 25f
 
@@ -184,10 +217,10 @@ object AmortizationPdfGenerator {
 
             val rowY = y + 12f
             canvas.drawText("Year ${yr.year}", MARGIN + 6f, rowY, textPaint)
-            canvas.drawText(EMIViewModel.formatCurrency(yr.openingBalance, numberFormat), MARGIN + colW + 6f, rowY, textPaint)
-            canvas.drawText(EMIViewModel.formatCurrency(yr.totalPrincipalPaid, numberFormat), MARGIN + colW * 2 + 6f, rowY, textPaint)
-            canvas.drawText(EMIViewModel.formatCurrency(yr.totalInterestPaid, numberFormat), MARGIN + colW * 3 + 6f, rowY, textPaint)
-            canvas.drawText(EMIViewModel.formatCurrency(yr.closingBalance, numberFormat), MARGIN + colW * 4 + 6f, rowY, textPaint)
+            canvas.drawText(formatPdfCurrency(yr.openingBalance), MARGIN + colW + 6f, rowY, textPaint)
+            canvas.drawText(formatPdfCurrency(yr.totalPrincipalPaid), MARGIN + colW * 2 + 6f, rowY, textPaint)
+            canvas.drawText(formatPdfCurrency(yr.totalInterestPaid), MARGIN + colW * 3 + 6f, rowY, textPaint)
+            canvas.drawText(formatPdfCurrency(yr.closingBalance), MARGIN + colW * 4 + 6f, rowY, textPaint)
 
             y += 18f
         }
@@ -237,10 +270,10 @@ object AmortizationPdfGenerator {
 
                 val rowY = y + 12f
                 canvas.drawText("Year ${yr.year}", MARGIN + 6f, rowY, textPaint)
-                canvas.drawText(EMIViewModel.formatCurrency(yr.openingBalance, numberFormat), MARGIN + colW + 6f, rowY, textPaint)
-                canvas.drawText(EMIViewModel.formatCurrency(yr.totalPrincipalPaid, numberFormat), MARGIN + colW * 2 + 6f, rowY, textPaint)
-                canvas.drawText(EMIViewModel.formatCurrency(yr.totalInterestPaid, numberFormat), MARGIN + colW * 3 + 6f, rowY, textPaint)
-                canvas.drawText(EMIViewModel.formatCurrency(yr.closingBalance, numberFormat), MARGIN + colW * 4 + 6f, rowY, textPaint)
+                canvas.drawText(formatPdfCurrency(yr.openingBalance), MARGIN + colW + 6f, rowY, textPaint)
+                canvas.drawText(formatPdfCurrency(yr.totalPrincipalPaid), MARGIN + colW * 2 + 6f, rowY, textPaint)
+                canvas.drawText(formatPdfCurrency(yr.totalInterestPaid), MARGIN + colW * 3 + 6f, rowY, textPaint)
+                canvas.drawText(formatPdfCurrency(yr.closingBalance), MARGIN + colW * 4 + 6f, rowY, textPaint)
 
                 y += 18f
             }
