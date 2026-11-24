@@ -2,4 +2,6 @@
 <paths>
     <cache-path name="cache_pdf" path="." />
     <files-path name="files_pdf" path="." />
+    <cache-path name="cache_reports" path="reports/" />
+    <files-path name="files_reports" path="reports/" />
 </paths>

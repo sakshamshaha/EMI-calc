@@ -56,6 +56,8 @@ import com.example.emicalculatorapp.ui.theme.TextSecondary
 fun ToolsHubScreen(
     onNavigateToPrepayment: () -> Unit = {},
     onNavigateToAffordability: () -> Unit = {},
+    onNavigateToHelpCenter: () -> Unit = {},
+    onNavigateToReportProblem: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -113,10 +115,11 @@ fun ToolsHubScreen(
         // 3. Smart Rate Sensitivity Strip
         ToolHubCard(
             title = "Rate Sensitivity & 'See the Math'",
-            description = "Dynamic ±0.5% rate delta matrices and mathematical breakdown of reducing balance formulas.",
+            description = "Dynamic rate delta matrices and mathematical breakdown of reducing balance formulas directly on the Calculate tab.",
             icon = Icons.Default.AutoAwesome,
-            iconTint = ElectricViolet,
-            statusBadge = "Coming in Phase 7"
+            iconTint = MintGreen,
+            statusBadge = "LIVE NOW",
+            badgeColor = MintGreen
         )
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -127,7 +130,9 @@ fun ToolsHubScreen(
             description = "Searchable loan questions, terminology breakdown, and financial literacy guides.",
             icon = Icons.AutoMirrored.Filled.HelpOutline,
             iconTint = LuminousCyan,
-            statusBadge = "Coming in Phase 7B"
+            statusBadge = "LIVE NOW",
+            badgeColor = MintGreen,
+            onClick = onNavigateToHelpCenter
         )
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -138,7 +143,9 @@ fun ToolsHubScreen(
             description = "Attach screenshot diagnostics, preview prefilled feedback emails, and save report history.",
             icon = Icons.Default.ReportProblem,
             iconTint = HotPink,
-            statusBadge = "Coming in Phase 7B"
+            statusBadge = "LIVE NOW",
+            badgeColor = MintGreen,
+            onClick = onNavigateToReportProblem
         )
 
         Spacer(modifier = Modifier.height(28.dp))

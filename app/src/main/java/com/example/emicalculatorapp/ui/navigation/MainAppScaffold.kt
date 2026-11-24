@@ -28,12 +28,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.emicalculatorapp.data.database.AppDatabase
 import com.example.emicalculatorapp.data.database.QuoteRepository
+import com.example.emicalculatorapp.data.database.ReportRepository
+import com.example.emicalculatorapp.data.report.EmailReportSender
 import com.example.emicalculatorapp.data.settings.SettingsRepository
 import com.example.emicalculatorapp.ui.components.AmbientBackground
 import com.example.emicalculatorapp.ui.settings.SettingsBottomSheet
 import com.example.emicalculatorapp.ui.theme.CanvasColor
 import com.example.emicalculatorapp.ui.theme.LocalReduceMotion
 import com.example.emicalculatorapp.viewmodel.EMIViewModel
+import com.example.emicalculatorapp.viewmodel.ReportsState
 import com.example.emicalculatorapp.viewmodel.SavedQuotesState
 
 /**
@@ -61,13 +64,26 @@ fun MainAppScaffold(
         val repo = QuoteRepository(db.quoteDao())
         SavedQuotesState(coroutineScope, repo)
     }
+    val reportsState = remember {
+        val db = AppDatabase.getInstance(context.applicationContext)
+        val repo = ReportRepository(db.reportDao())
+        val sender = EmailReportSender()
+        ReportsState(coroutineScope, repo, sender)
+    }
 
     var showSettingsSheet by remember { mutableStateOf(false) }
 
-    // Intercept Back button: if in sub-screen (Prepayment Simulator / Affordability), return to Tools Hub.
+    val isSubScreen = currentRoute in listOf(
+        "prepayment_simulator",
+        "affordability_calculator",
+        "help_center",
+        "report_problem"
+    )
+
+    // Intercept Back button: if in sub-screen, return to previous screen.
     // Otherwise return to Calculate first before exiting.
     BackHandler(enabled = currentRoute != NavDestination.Calculate.route) {
-        if (currentRoute == "prepayment_simulator" || currentRoute == "affordability_calculator") {
+        if (isSubScreen) {
             navController.popBackStack()
         } else {
             navController.navigate(NavDestination.Calculate.route) {
@@ -88,8 +104,8 @@ fun MainAppScaffold(
             topBar = {
                 AppTopBar(
                     onHelpClick = {
-                        navController.navigate(NavDestination.Tools.route) {
-                            popUpTo(NavDestination.Calculate.route)
+                        navController.navigate("help_center") {
+                            popUpTo(NavDestination.Calculate.route) { saveState = true }
                             launchSingleTop = true
                         }
                     },
@@ -129,6 +145,7 @@ fun MainAppScaffold(
                     navController = navController,
                     sharedViewModel = sharedViewModel,
                     savedQuotesState = savedQuotesState,
+                    reportsState = reportsState,
                     onNavigateToGetStarted = onNavigateToGetStarted,
                     reduceMotion = reduceMotion
                 )

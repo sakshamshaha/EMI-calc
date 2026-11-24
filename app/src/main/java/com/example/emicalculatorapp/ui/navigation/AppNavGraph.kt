@@ -12,11 +12,14 @@ import com.example.emicalculatorapp.model.QuoteCalculations
 import com.example.emicalculatorapp.ui.affordability.AffordabilityScreen
 import com.example.emicalculatorapp.ui.calculator.CalculatorScreen
 import com.example.emicalculatorapp.ui.compare.CompareScreen
+import com.example.emicalculatorapp.ui.help.HelpCenterScreen
+import com.example.emicalculatorapp.ui.report.ReportProblemScreen
 import com.example.emicalculatorapp.ui.saved.SavedQuotesScreen
 import com.example.emicalculatorapp.ui.schedule.ScheduleScreen
 import com.example.emicalculatorapp.ui.tools.PrepaymentScreen
 import com.example.emicalculatorapp.ui.tools.ToolsHubScreen
 import com.example.emicalculatorapp.viewmodel.EMIViewModel
+import com.example.emicalculatorapp.viewmodel.ReportsState
 import com.example.emicalculatorapp.viewmodel.SavedQuotesState
 
 @Composable
@@ -24,6 +27,7 @@ fun AppNavGraph(
     navController: NavHostController,
     sharedViewModel: EMIViewModel,
     savedQuotesState: SavedQuotesState,
+    reportsState: ReportsState,
     onNavigateToGetStarted: () -> Unit,
     reduceMotion: Boolean,
     modifier: Modifier = Modifier
@@ -81,6 +85,12 @@ fun AppNavGraph(
                 },
                 onNavigateToAffordability = {
                     navController.navigate("affordability_calculator")
+                },
+                onNavigateToHelpCenter = {
+                    navController.navigate("help_center")
+                },
+                onNavigateToReportProblem = {
+                    navController.navigate("report_problem")
                 }
             )
         }
@@ -95,6 +105,21 @@ fun AppNavGraph(
         composable("affordability_calculator") {
             AffordabilityScreen(
                 onNavigateBack = { navController.popBackStack() },
+                viewModel = sharedViewModel
+            )
+        }
+
+        composable("help_center") {
+            HelpCenterScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToReport = { navController.navigate("report_problem") }
+            )
+        }
+
+        composable("report_problem") {
+            ReportProblemScreen(
+                onNavigateBack = { navController.popBackStack() },
+                reportsState = reportsState,
                 viewModel = sharedViewModel
             )
         }
