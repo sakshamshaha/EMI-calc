@@ -1,0 +1,163 @@
+package com.example.emicalculatorapp.ui.affordability
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.emicalculatorapp.ui.components.AmbientBackground
+import com.example.emicalculatorapp.ui.components.fx.ShineButton
+import com.example.emicalculatorapp.ui.theme.LocalNumberFormat
+import com.example.emicalculatorapp.ui.theme.SpaceGroteskFamily
+import com.example.emicalculatorapp.ui.theme.SurfaceBright
+import com.example.emicalculatorapp.ui.theme.SurfaceContainerHigh
+import com.example.emicalculatorapp.ui.theme.TextPrimary
+import com.example.emicalculatorapp.ui.theme.TextSecondary
+import com.example.emicalculatorapp.viewmodel.EMIViewModel
+
+@Composable
+fun AffordabilityScreen(
+    onNavigateBack: () -> Unit,
+    viewModel: EMIViewModel,
+    modifier: Modifier = Modifier
+) {
+    BackHandler { onNavigateBack() }
+
+    val focusManager = LocalFocusManager.current
+    val scrollState = rememberScrollState()
+
+    val liveLoanAmount by viewModel.loanAmount.collectAsStateWithLifecycle()
+    val liveRate by viewModel.interestRate.collectAsStateWithLifecycle()
+    val liveTenure by viewModel.tenureValue.collectAsStateWithLifecycle()
+    val isYearMode by viewModel.isYearMode.collectAsStateWithLifecycle()
+
+    val params by viewModel.affordability.params.collectAsStateWithLifecycle()
+    val result by viewModel.affordability.result.collectAsStateWithLifecycle()
+    val numberFormat = LocalNumberFormat.current
+
+    var isDraggingSlider by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .imePadding()
+    ) {
+        AmbientBackground()
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // ================= TOP BAR =================
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = onNavigateBack,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(SurfaceContainerHigh.copy(alpha = 0.8f))
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = TextPrimary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Column(modifier = Modifier.padding(start = 14.dp)) {
+                    Text(
+                        text = "Affordability Calculator",
+                        fontFamily = SpaceGroteskFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = TextPrimary
+                    )
+                    Text(
+                        text = "Live Loan: ${EMIViewModel.formatCompactCurrency(liveLoanAmount, numberFormat)} @ ${String.format(java.util.Locale.US, "%.2f%%", liveRate)} for ${if (isYearMode) "$liveTenure Yrs" else "$liveTenure Mo"}",
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 11.sp,
+                        color = TextSecondary
+                    )
+                }
+            }
+
+            // ================= 1. HERO CAPACITY CARD =================
+            AffordabilityHeroCard(
+                result = result,
+                numberFormat = numberFormat,
+                isContinuousDrag = isDraggingSlider
+            )
+
+            // ================= 2. 180° ARC METER GAUGE =================
+            AffordabilityGauge(
+                ratioPercent = result.totalObligationRatio,
+                zone = result.zone
+            )
+
+            // ================= 3. INPUT CONTROLS =================
+            AffordabilityInputCards(
+                params = params,
+                numberFormat = numberFormat,
+                onIncomeChanged = { viewModel.affordability.setMonthlyIncome(it) },
+                onExistingEmisChanged = { viewModel.affordability.setExistingEmis(it) },
+                onMaxRatioChanged = { viewModel.affordability.setMaxDtiRatio(it) },
+                onRateChanged = { viewModel.affordability.setInterestRate(it) },
+                onTenureChanged = { viewModel.affordability.setTenureYears(it) },
+                onDraggingChanged = { isDraggingSlider = it },
+                focusManager = focusManager
+            )
+
+            // ================= 4. RESET ACTIONS =================
+            ShineButton(
+                text = "Reset to Live Loan Terms",
+                onClick = {
+                    val defaultYears = if (isYearMode) liveTenure else (liveTenure / 12).coerceAtLeast(1)
+                    viewModel.affordability.resetToDefaults(liveRate, defaultYears)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 100.dp),
+                gradientBrush = Brush.horizontalGradient(listOf(SurfaceContainerHigh, SurfaceBright))
+            )
+        }
+    }
+}

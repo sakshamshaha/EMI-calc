@@ -36,7 +36,6 @@ import kotlin.math.pow
 import kotlin.math.round
 
 private data class LoanScheduleParams(val principal: Double, val annualRate: Double, val tenure: Int, val isYears: Boolean)
-private data class LoanPrepaymentConfig(val principal: Double, val annualRate: Double, val tenure: Int, val isYears: Boolean, val params: PrepaymentParams)
 
 class EMIViewModel : ViewModel() {
 
@@ -67,73 +66,51 @@ class EMIViewModel : ViewModel() {
     )
     val fullSchedule: StateFlow<FullAmortizationSchedule> = _fullSchedule.asStateFlow()
 
-    // Prepayment Parameters & Accelerated Simulation Result
-    private val _prepaymentParams = MutableStateFlow(PrepaymentParams())
-    val prepaymentParams: StateFlow<PrepaymentParams> = _prepaymentParams.asStateFlow()
-
-    private val _prepaymentResult = MutableStateFlow(
-        PrepaymentCalculator.calculatePrepaymentSimulation(
-            principal = 4500000.0,
-            annualRate = 8.55,
-            tenure = 20,
-            isYears = true,
-            params = PrepaymentParams()
-        )
+    // Dedicated Feature State Holders
+    val prepayment = PrepaymentState(viewModelScope, _loanAmount, _interestRate, _tenureValue, _isYearMode)
+    val compare = CompareState(viewModelScope, _loanAmount, _interestRate, _tenureValue, _isYearMode) {
+        recalculate()
+        clampPrepaymentLumpSumMonth()
+    }
+    val affordability = AffordabilityState(
+        scope = viewModelScope,
+        liveLoanAmount = _loanAmount,
+        liveLoanResult = _result,
+        liveRate = _interestRate,
+        liveTenure = _tenureValue
     )
-    val prepaymentResult: StateFlow<PrepaymentSimulationResult> = _prepaymentResult.asStateFlow()
 
-    // Loan Comparison State (Loan B independent state & comparison result)
-    private val _loanBState = MutableStateFlow(
-        LoanInputState(
-            amount = 4500000.0,
-            rate = 8.05,
-            tenureValue = 20,
-            isYearMode = true,
-            processingFeePercent = 0.0
-        )
-    )
-    val loanBState: StateFlow<LoanInputState> = _loanBState.asStateFlow()
+    // Direct Forwarders for Prepayment State
+    val prepaymentParams: StateFlow<PrepaymentParams> = prepayment.params
+    val prepaymentResult: StateFlow<PrepaymentSimulationResult> = prepayment.result
+    fun setExtraMonthly(amount: Double) = prepayment.setExtraMonthly(amount)
+    fun setLumpSumAmount(amount: Double) = prepayment.setLumpSumAmount(amount)
+    fun setLumpSumMonth(month: Int) = prepayment.setLumpSumMonth(month)
+    fun setLumpSumEnabled(enabled: Boolean) = prepayment.setLumpSumEnabled(enabled)
+    fun setStepUpPercent(percent: Double) = prepayment.setStepUpPercent(percent)
+    fun setStepUpEnabled(enabled: Boolean) = prepayment.setStepUpEnabled(enabled)
+    fun setStepUpMode(mode: StepUpMode) = prepayment.setStepUpMode(mode)
+    fun resetPrepayment() = prepayment.reset()
 
-    private val _comparisonResult = MutableStateFlow(
-        LoanComparisonCalculator.compareLoans(
-            LoanInputState(4500000.0, 8.55, 20, true, 0.0),
-            LoanInputState(4500000.0, 8.05, 20, true, 0.0)
-        )
-    )
-    val comparisonResult: StateFlow<LoanComparisonResult> = _comparisonResult.asStateFlow()
+    // Direct Forwarders for Loan Comparison State
+    val loanBState: StateFlow<LoanInputState> = compare.loanBState
+    val comparisonResult: StateFlow<LoanComparisonResult> = compare.comparisonResult
+    fun setLoanBAmount(amount: Double) = compare.setLoanBAmount(amount)
+    fun setLoanBRate(rate: Double) = compare.setLoanBRate(rate)
+    fun setLoanBTenure(tenure: Int) = compare.setLoanBTenure(tenure)
+    fun setLoanBYearMode(isYear: Boolean) = compare.setLoanBYearMode(isYear)
+    fun setLoanBProcessingFee(feePercent: Double) = compare.setLoanBProcessingFee(feePercent)
+    fun copyAToB() = compare.copyAToB()
+    fun swapAAndB() = compare.swapAAndB()
 
     init {
-        // 1. Cancellable Full Schedule Calculation
+        // Cancellable Full Schedule Calculation
         viewModelScope.launch {
             combine(_loanAmount, _interestRate, _tenureValue, _isYearMode) { p, r, t, ym ->
                 LoanScheduleParams(p, r, t, ym)
             }.distinctUntilChanged().collectLatest { cfg ->
                 _fullSchedule.value = withContext(Dispatchers.Default) {
                     calculateFullSchedule(cfg.principal, cfg.annualRate, cfg.tenure, cfg.isYears)
-                }
-            }
-        }
-
-        // 2. Cancellable Prepayment Simulation
-        viewModelScope.launch {
-            combine(_loanAmount, _interestRate, _tenureValue, _isYearMode, _prepaymentParams) { p, r, t, ym, par ->
-                LoanPrepaymentConfig(p, r, t, ym, par)
-            }.distinctUntilChanged().collectLatest { cfg ->
-                _prepaymentResult.value = withContext(Dispatchers.Default) {
-                    PrepaymentCalculator.calculatePrepaymentSimulation(
-                        cfg.principal, cfg.annualRate, cfg.tenure, cfg.isYears, cfg.params
-                    )
-                }
-            }
-        }
-
-        // 3. Cancellable Loan Comparison Engine
-        viewModelScope.launch {
-            combine(_loanAmount, _interestRate, _tenureValue, _isYearMode, _loanBState) { p, r, t, ym, b ->
-                LoanInputState(p, r, t, ym, 0.0) to b
-            }.distinctUntilChanged().collectLatest { (a, b) ->
-                _comparisonResult.value = withContext(Dispatchers.Default) {
-                    LoanComparisonCalculator.compareLoans(a, b)
                 }
             }
         }
@@ -190,134 +167,7 @@ class EMIViewModel : ViewModel() {
         selectCategory(LoanCategory.HOME)
     }
 
-    // Prepayment Controls
-    fun setExtraMonthly(amount: Double) {
-        val clamped = amount.coerceAtLeast(0.0)
-        if (_prepaymentParams.value.extraMonthly == clamped) return
-        _prepaymentParams.value = _prepaymentParams.value.copy(extraMonthly = clamped)
-    }
-
-    fun setLumpSumAmount(amount: Double) {
-        val clamped = amount.coerceAtLeast(0.0)
-        if (_prepaymentParams.value.lumpSumAmount == clamped) return
-        _prepaymentParams.value = _prepaymentParams.value.copy(lumpSumAmount = clamped)
-    }
-
-    fun setLumpSumMonth(month: Int) {
-        val maxMonth = if (_isYearMode.value) _tenureValue.value * 12 else _tenureValue.value
-        val clamped = month.coerceIn(1, maxMonth)
-        if (_prepaymentParams.value.lumpSumMonth == clamped) return
-        _prepaymentParams.value = _prepaymentParams.value.copy(lumpSumMonth = clamped)
-    }
-
-    fun setLumpSumEnabled(enabled: Boolean) {
-        if (_prepaymentParams.value.isLumpSumEnabled == enabled) return
-        _prepaymentParams.value = _prepaymentParams.value.copy(isLumpSumEnabled = enabled)
-    }
-
-    fun setStepUpPercent(percent: Double) {
-        val clamped = percent.coerceIn(0.0, 20.0)
-        if (_prepaymentParams.value.stepUpPercent == clamped) return
-        _prepaymentParams.value = _prepaymentParams.value.copy(stepUpPercent = clamped)
-    }
-
-    fun setStepUpEnabled(enabled: Boolean) {
-        if (_prepaymentParams.value.isStepUpEnabled == enabled) return
-        _prepaymentParams.value = _prepaymentParams.value.copy(isStepUpEnabled = enabled)
-    }
-
-    fun setStepUpMode(mode: StepUpMode) {
-        if (_prepaymentParams.value.stepUpMode == mode) return
-        _prepaymentParams.value = _prepaymentParams.value.copy(stepUpMode = mode)
-    }
-
-    private fun clampPrepaymentLumpSumMonth() {
-        val clamped = clampLumpSumMonth(
-            currentLumpSumMonth = _prepaymentParams.value.lumpSumMonth,
-            tenureValue = _tenureValue.value,
-            isYearMode = _isYearMode.value
-        )
-        if (_prepaymentParams.value.lumpSumMonth != clamped) {
-            _prepaymentParams.value = _prepaymentParams.value.copy(lumpSumMonth = clamped)
-        }
-    }
-
-    fun resetPrepayment() {
-        _prepaymentParams.value = PrepaymentParams()
-    }
-
-    // ================= LOAN B COMPARISON MUTATIONS =================
-    fun setLoanBAmount(amount: Double) {
-        val clamped = amount.coerceIn(10000.0, 50000000.0)
-        if (_loanBState.value.amount == clamped) return
-        _loanBState.value = _loanBState.value.copy(amount = clamped)
-    }
-
-    fun setLoanBRate(rate: Double) {
-        val clamped = (round(rate.coerceIn(1.0, 30.0) * 100.0) / 100.0)
-        if (_loanBState.value.rate == clamped) return
-        _loanBState.value = _loanBState.value.copy(rate = clamped)
-    }
-
-    fun setLoanBTenure(tenure: Int) {
-        val maxVal = if (_loanBState.value.isYearMode) 30 else 360
-        val clamped = tenure.coerceIn(1, maxVal)
-        if (_loanBState.value.tenureValue == clamped) return
-        _loanBState.value = _loanBState.value.copy(tenureValue = clamped)
-    }
-
-    fun setLoanBYearMode(isYear: Boolean) {
-        if (_loanBState.value.isYearMode == isYear) return
-        val currentTenure = _loanBState.value.tenureValue
-        val convertedTenure = if (isYear) {
-            (currentTenure / 12).coerceIn(1, 30)
-        } else {
-            (currentTenure * 12).coerceIn(1, 360)
-        }
-        _loanBState.value = _loanBState.value.copy(
-            isYearMode = isYear,
-            tenureValue = convertedTenure
-        )
-    }
-
-    fun setLoanBProcessingFee(feePercent: Double) {
-        val clamped = (round(feePercent.coerceIn(0.0, 5.0) * 100.0) / 100.0)
-        if (_loanBState.value.processingFeePercent == clamped) return
-        _loanBState.value = _loanBState.value.copy(processingFeePercent = clamped)
-    }
-
-    fun copyAToB() {
-        _loanBState.value = LoanInputState(
-            amount = _loanAmount.value,
-            rate = _interestRate.value,
-            tenureValue = _tenureValue.value,
-            isYearMode = _isYearMode.value,
-            processingFeePercent = _loanBState.value.processingFeePercent
-        )
-    }
-
-    fun swapAAndB() {
-        val prevAAmount = _loanAmount.value
-        val prevARate = _interestRate.value
-        val prevATenure = _tenureValue.value
-        val prevAYearMode = _isYearMode.value
-
-        val b = _loanBState.value
-
-        _loanAmount.value = b.amount
-        _interestRate.value = b.rate
-        _isYearMode.value = b.isYearMode
-        _tenureValue.value = b.tenureValue
-        recalculate()
-        clampPrepaymentLumpSumMonth()
-
-        _loanBState.value = b.copy(
-            amount = prevAAmount,
-            rate = prevARate,
-            tenureValue = prevATenure,
-            isYearMode = prevAYearMode
-        )
-    }
+    private fun clampPrepaymentLumpSumMonth() = prepayment.clampLumpSumMonth()
 
     private fun recalculate() {
         val p = _loanAmount.value

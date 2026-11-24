@@ -55,6 +55,7 @@ import com.example.emicalculatorapp.ui.theme.TextSecondary
 @Composable
 fun ToolsHubScreen(
     onNavigateToPrepayment: () -> Unit = {},
+    onNavigateToAffordability: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -102,7 +103,9 @@ fun ToolsHubScreen(
             description = "180° visual gauge evaluating your max comfortable loan based on monthly net income and debt-to-income (DTI) ratio.",
             icon = Icons.Default.AccountBalance,
             iconTint = MintGreen,
-            statusBadge = "Coming in Phase 5"
+            statusBadge = "LIVE NOW",
+            badgeColor = MintGreen,
+            onClick = onNavigateToAffordability
         )
 
         Spacer(modifier = Modifier.height(14.dp))

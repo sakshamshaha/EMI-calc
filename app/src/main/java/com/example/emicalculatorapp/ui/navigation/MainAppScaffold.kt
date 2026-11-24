@@ -51,6 +51,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.emicalculatorapp.data.settings.SettingsRepository
+import com.example.emicalculatorapp.ui.affordability.AffordabilityScreen
 import com.example.emicalculatorapp.ui.calculator.CalculatorScreen
 import com.example.emicalculatorapp.ui.compare.CompareScreen
 import com.example.emicalculatorapp.ui.components.AmbientBackground
@@ -230,12 +231,22 @@ fun MainAppScaffold(
                         ToolsHubScreen(
                             onNavigateToPrepayment = {
                                 navController.navigate("prepayment_simulator")
+                            },
+                            onNavigateToAffordability = {
+                                navController.navigate("affordability_calculator")
                             }
                         )
                     }
 
                     composable("prepayment_simulator") {
                         PrepaymentScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            viewModel = sharedViewModel
+                        )
+                    }
+
+                    composable("affordability_calculator") {
+                        AffordabilityScreen(
                             onNavigateBack = { navController.popBackStack() },
                             viewModel = sharedViewModel
                         )

@@ -145,27 +145,39 @@ fun CompareActionsRow(
         label = "SwapRotation"
     )
 
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        ShineButton(
-            text = "Copy A to B",
-            onClick = onCopyAToB,
-            modifier = Modifier.weight(1f).height(44.dp),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
-            gradientBrush = Brush.horizontalGradient(listOf(SurfaceContainerHigh, SurfaceBright))
-        )
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            ShineButton(
+                text = "Copy A to B",
+                onClick = onCopyAToB,
+                modifier = Modifier.weight(1f).height(44.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                gradientBrush = Brush.horizontalGradient(listOf(SurfaceContainerHigh, SurfaceBright))
+            )
 
-        ShineButton(
-            text = "Swap A ⇄ B",
-            onClick = {
-                swapRotation += 180f
-                onSwap()
-            },
-            modifier = Modifier.weight(1f).height(44.dp),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
-            gradientBrush = Brush.horizontalGradient(listOf(ElectricViolet.copy(alpha = 0.7f), HotPink.copy(alpha = 0.7f)))
+            ShineButton(
+                text = "Swap A ⇄ B",
+                onClick = {
+                    swapRotation += 180f
+                    onSwap()
+                },
+                modifier = Modifier.weight(1f).height(44.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                gradientBrush = Brush.horizontalGradient(listOf(ElectricViolet.copy(alpha = 0.7f), HotPink.copy(alpha = 0.7f)))
+            )
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = "Swap also updates your Calculate tab.",
+            fontFamily = InterFamily,
+            fontSize = 11.sp,
+            color = TextMuted,
+            modifier = Modifier.align(Alignment.End).padding(end = 4.dp)
         )
     }
 }
