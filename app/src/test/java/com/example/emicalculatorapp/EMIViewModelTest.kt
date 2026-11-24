@@ -1,5 +1,8 @@
 package com.example.emicalculatorapp
 
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
+import com.example.emicalculatorapp.data.settings.NumberFormatStyle
 import com.example.emicalculatorapp.viewmodel.EMIViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -119,5 +122,119 @@ class EMIViewModelTest {
 
         val formatIntl = EMIViewModel.formatCurrency(4500000.0, com.example.emicalculatorapp.data.settings.NumberFormatStyle.INTERNATIONAL)
         assertEquals("₹ 4,500,000", formatIntl)
+    }
+
+    @Test
+    fun testStableCursorTypingBothFormats() {
+        // Typing into Indian format
+        val typeIndian1 = EMIViewModel.formatAmountWithStableCursor(
+            input = TextFieldValue("4", TextRange(1)),
+            formatStyle = NumberFormatStyle.INDIAN
+        )
+        assertEquals("4", typeIndian1.text)
+        assertEquals(1, typeIndian1.selection.start)
+
+        val typeIndian2 = EMIViewModel.formatAmountWithStableCursor(
+            input = TextFieldValue("45000", TextRange(5)),
+            formatStyle = NumberFormatStyle.INDIAN
+        )
+        assertEquals("45,000", typeIndian2.text)
+        assertEquals(6, typeIndian2.selection.start)
+
+        // Typing into International format
+        val typeIntl = EMIViewModel.formatAmountWithStableCursor(
+            input = TextFieldValue("1234567", TextRange(7)),
+            formatStyle = NumberFormatStyle.INTERNATIONAL
+        )
+        assertEquals("1,234,567", typeIntl.text)
+        assertEquals(9, typeIntl.selection.start)
+    }
+
+    @Test
+    fun testStableCursorMiddleDeleteBothFormats() {
+        // Indian: "4,95,00,000" with cursor after '9' (index 3). Backspace deletes '9'.
+        // Raw text: "4,5,00,000" with cursor at index 2 (digits before cursor = 1 ('4'))
+        val deleteIndian = EMIViewModel.formatAmountWithStableCursor(
+            input = TextFieldValue("4,5,00,000", TextRange(2)),
+            formatStyle = NumberFormatStyle.INDIAN
+        )
+        assertEquals("45,00,000", deleteIndian.text)
+        // Cursor remains right after '4' (index 1)
+        assertEquals(1, deleteIndian.selection.start)
+
+        // International: "45,900,000" with cursor after '9' (index 4). Backspace deletes '9'.
+        // Raw text: "45,00,000" with cursor at index 3 (digits before cursor = 2 ('4', '5'))
+        val deleteIntl = EMIViewModel.formatAmountWithStableCursor(
+            input = TextFieldValue("45,00,000", TextRange(3)),
+            formatStyle = NumberFormatStyle.INTERNATIONAL
+        )
+        assertEquals("4,500,000", deleteIntl.text)
+        // In "4,500,000", after 2 digits ('4' and '5') is index 3
+        assertEquals(3, deleteIntl.selection.start)
+    }
+
+    @Test
+    fun testStableCursorPasteBothFormats() {
+        // Pasting "4500000" into Indian format
+        val pasteIndian = EMIViewModel.formatAmountWithStableCursor(
+            input = TextFieldValue("4500000", TextRange(7)),
+            formatStyle = NumberFormatStyle.INDIAN
+        )
+        assertEquals("45,00,000", pasteIndian.text)
+        assertEquals(9, pasteIndian.selection.start)
+
+        // Pasting "4500000" into International format
+        val pasteIntl = EMIViewModel.formatAmountWithStableCursor(
+            input = TextFieldValue("4500000", TextRange(7)),
+            formatStyle = NumberFormatStyle.INTERNATIONAL
+        )
+        assertEquals("4,500,000", pasteIntl.text)
+        assertEquals(9, pasteIntl.selection.start)
+    }
+
+    @Test
+    fun testFullAmortizationScheduleProperties() {
+        // Home preset: 45,00,000 @ 8.55% for 20 years (240 months)
+        val schedule = EMIViewModel.calculateFullSchedule(
+            principal = 4500000.0,
+            annualRate = 8.55,
+            tenure = 20,
+            isYears = true
+        )
+
+        assertEquals(240, schedule.totalMonths)
+        assertEquals(240, schedule.allMonths.size)
+        assertEquals(20, schedule.years.size)
+
+        // 1. Final month closing balance is ~0.0
+        val finalMonth = schedule.allMonths.last()
+        assertEquals(0.0, finalMonth.closingBalance, 0.01)
+
+        // 2. Final year closing balance is ~0.0
+        val finalYear = schedule.years.last()
+        assertEquals(0.0, finalYear.closingBalance, 0.01)
+
+        // 3. Sum of principal payments equals original loan amount (45,00,000)
+        val sumPrincipal = schedule.allMonths.sumOf { it.principalPaid }
+        assertEquals(4500000.0, sumPrincipal, 0.01)
+
+        // 4. Sum of interest payments equals total interest
+        val sumInterest = schedule.allMonths.sumOf { it.interestPaid }
+        assertEquals(schedule.totalInterest, sumInterest, 0.05)
+
+        // 5. Total payment equals sum of monthly actual EMIs
+        val sumPayment = schedule.allMonths.sumOf { it.emi }
+        assertEquals(schedule.totalPayment, sumPayment, 0.05)
+
+        // 6. Year 1 matches independent manual calculation:
+        // Month 1 opening = 4500000, r = 8.55/12/100 = 0.007125
+        // Month 1 interest = 32062.50, EMI = 39194.57 -> principal = 7132.07
+        // Sum of 12 months geometric principal growth = P_1 * ((1+r)^12 - 1) / r = 89,019.62
+        val year1 = schedule.years[0]
+        assertEquals(12, year1.months.size)
+        assertEquals(4500000.0, year1.openingBalance, 0.01)
+        assertEquals(89019.62, year1.totalPrincipalPaid, 1.0)
+        assertEquals(381315.22, year1.totalInterestPaid, 1.0)
+        assertEquals(4500000.0 - year1.totalPrincipalPaid, year1.closingBalance, 0.01)
     }
 }

@@ -1,13 +1,23 @@
 package com.example.emicalculatorapp.viewmodel
 
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.emicalculatorapp.data.settings.NumberFormatStyle
 import com.example.emicalculatorapp.model.AmortizationMilestone
+import com.example.emicalculatorapp.model.AmortizationMonth
+import com.example.emicalculatorapp.model.AmortizationYear
 import com.example.emicalculatorapp.model.EMICalculationResult
+import com.example.emicalculatorapp.model.FullAmortizationSchedule
 import com.example.emicalculatorapp.model.LoanCategory
+import com.example.emicalculatorapp.util.CurrencyFormatter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.abs
@@ -36,6 +46,13 @@ class EMIViewModel : ViewModel() {
     // Calculation Results
     private val _result = MutableStateFlow(calculateEMI(4500000.0, 8.55, 20, true))
     val result: StateFlow<EMICalculationResult> = _result.asStateFlow()
+
+    // Off-thread Full Amortization Schedule
+    private var scheduleJob: Job? = null
+    private val _fullSchedule = MutableStateFlow(
+        calculateFullSchedule(4500000.0, 8.55, 20, true)
+    )
+    val fullSchedule: StateFlow<FullAmortizationSchedule> = _fullSchedule.asStateFlow()
 
     fun selectCategory(category: LoanCategory) {
         _selectedCategory.value = category
@@ -86,12 +103,23 @@ class EMIViewModel : ViewModel() {
     }
 
     private fun recalculate() {
+        val p = _loanAmount.value
+        val r = _interestRate.value
+        val t = _tenureValue.value
+        val ym = _isYearMode.value
+
         _result.value = calculateEMI(
-            principal = _loanAmount.value,
-            annualRate = _interestRate.value,
-            tenure = _tenureValue.value,
-            isYears = _isYearMode.value
+            principal = p,
+            annualRate = r,
+            tenure = t,
+            isYears = ym
         )
+
+        scheduleJob?.cancel()
+        scheduleJob = viewModelScope.launch(Dispatchers.Default) {
+            val schedule = calculateFullSchedule(p, r, t, ym)
+            _fullSchedule.value = schedule
+        }
     }
 
     companion object {
@@ -214,92 +242,151 @@ class EMIViewModel : ViewModel() {
         }
 
         /**
-         * Formats numbers into native Indian grouping style (12,34,567) with ₹ symbol.
+         * Calculates full month-by-month and year-by-year amortization schedule.
+         * Satisfies exact balance clearing (final balance is 0.0) and closed conservation of capital.
          */
-        fun formatIndianCurrency(amount: Double, includeDecimals: Boolean = false): String {
-            val roundedAmount = round(amount).toLong()
-            val isNegative = roundedAmount < 0
-            val absVal = abs(roundedAmount)
-            val s = absVal.toString()
-            val grouped = if (s.length <= 3) {
-                s
+        fun calculateFullSchedule(
+            principal: Double,
+            annualRate: Double,
+            tenure: Int,
+            isYears: Boolean
+        ): FullAmortizationSchedule {
+            val totalMonths = if (isYears) tenure * 12 else tenure
+            if (totalMonths <= 0 || principal <= 0.0) {
+                return FullAmortizationSchedule(
+                    principal = principal,
+                    annualRate = annualRate,
+                    totalMonths = 0,
+                    monthlyEMI = 0.0,
+                    totalInterest = 0.0,
+                    totalPayment = 0.0,
+                    years = emptyList(),
+                    allMonths = emptyList()
+                )
+            }
+
+            val r = (annualRate / 12.0) / 100.0
+            val monthlyEMI: Double = if (r > 0.0) {
+                val factor = (1.0 + r).pow(totalMonths.toDouble())
+                (principal * r * factor) / (factor - 1.0)
             } else {
-                val lastThree = s.substring(s.length - 3)
-                val remaining = s.substring(0, s.length - 3)
-                val sb = StringBuilder()
-                var count = 0
-                for (i in remaining.length - 1 downTo 0) {
-                    sb.append(remaining[i])
-                    count++
-                    if (count == 2 && i != 0) {
-                        sb.append(',')
-                        count = 0
-                    }
+                principal / totalMonths.toDouble()
+            }
+
+            var currentBalance = principal
+            val allMonths = ArrayList<AmortizationMonth>(totalMonths)
+            val years = ArrayList<AmortizationYear>((totalMonths + 11) / 12)
+
+            var yearOpeningBalance = principal
+            var yearPrincipalPaid = 0.0
+            var yearInterestPaid = 0.0
+            var yearTotalPayment = 0.0
+            val currentYearMonths = ArrayList<AmortizationMonth>(12)
+
+            var cumulativePrincipal = 0.0
+            var cumulativeInterest = 0.0
+
+            for (m in 1..totalMonths) {
+                val interest = if (r > 0.0) currentBalance * r else 0.0
+                val isLastMonth = m == totalMonths
+
+                val principalPart: Double
+                val actualEMI: Double
+                val newBalance: Double
+
+                if (isLastMonth) {
+                    principalPart = currentBalance
+                    actualEMI = principalPart + interest
+                    newBalance = 0.0
+                } else {
+                    principalPart = (monthlyEMI - interest).coerceIn(0.0, currentBalance)
+                    actualEMI = monthlyEMI
+                    newBalance = (currentBalance - principalPart).coerceAtLeast(0.0)
                 }
-                sb.reverse().toString() + "," + lastThree
-            }
 
-            val prefix = if (isNegative) "-₹ " else "₹ "
-            return if (includeDecimals) {
-                val cents = abs((amount * 100).toLong() % 100)
-                String.format(Locale.US, "%s%s.%02d", prefix, grouped, cents)
-            } else {
-                "$prefix$grouped"
-            }
-        }
+                val yearIndex = ((m - 1) / 12) + 1
+                val monthData = AmortizationMonth(
+                    monthIndex = m,
+                    yearIndex = yearIndex,
+                    openingBalance = currentBalance,
+                    emi = actualEMI,
+                    principalPaid = principalPart,
+                    interestPaid = interest,
+                    closingBalance = newBalance
+                )
 
-        fun formatCompactIndianLakh(amount: Double): String {
-            val lakhs = amount / 100000.0
-            return if (lakhs >= 100.0) {
-                String.format(Locale.US, "₹%.1f Cr", lakhs / 100.0)
-            } else if (lakhs >= 1.0) {
-                String.format(Locale.US, "₹%.1f L", lakhs)
-            } else {
-                String.format(Locale.US, "₹%.0f K", amount / 1000.0)
-            }
-        }
+                allMonths.add(monthData)
+                currentYearMonths.add(monthData)
 
-        fun formatInternationalCurrency(amount: Double, includeDecimals: Boolean = false): String {
-            val roundedAmount = round(amount).toLong()
-            val isNegative = roundedAmount < 0
-            val absVal = abs(roundedAmount)
-            val s = absVal.toString()
-            val grouped = if (s.length <= 3) {
-                s
-            } else {
-                val lastThree = s.substring(s.length - 3)
-                val remaining = s.substring(0, s.length - 3)
-                val sb = StringBuilder()
-                var count = 0
-                for (i in remaining.length - 1 downTo 0) {
-                    sb.append(remaining[i])
-                    count++
-                    if (count == 3 && i != 0) {
-                        sb.append(',')
-                        count = 0
-                    }
+                yearPrincipalPaid += principalPart
+                yearInterestPaid += interest
+                yearTotalPayment += actualEMI
+                cumulativePrincipal += principalPart
+                cumulativeInterest += interest
+
+                currentBalance = newBalance
+
+                // Close year bucket
+                if (m % 12 == 0 || isLastMonth) {
+                    years.add(
+                        AmortizationYear(
+                            year = yearIndex,
+                            openingBalance = yearOpeningBalance,
+                            totalPrincipalPaid = yearPrincipalPaid,
+                            totalInterestPaid = yearInterestPaid,
+                            totalPayment = yearTotalPayment,
+                            closingBalance = currentBalance,
+                            months = ArrayList(currentYearMonths)
+                        )
+                    )
+                    yearOpeningBalance = currentBalance
+                    yearPrincipalPaid = 0.0
+                    yearInterestPaid = 0.0
+                    yearTotalPayment = 0.0
+                    currentYearMonths.clear()
                 }
-                sb.reverse().toString() + "," + lastThree
             }
 
-            val prefix = if (isNegative) "-₹ " else "₹ "
-            return if (includeDecimals) {
-                val cents = abs((amount * 100).toLong() % 100)
-                String.format(Locale.US, "%s%s.%02d", prefix, grouped, cents)
-            } else {
-                "$prefix$grouped"
-            }
+            return FullAmortizationSchedule(
+                principal = principal,
+                annualRate = annualRate,
+                totalMonths = totalMonths,
+                monthlyEMI = monthlyEMI,
+                totalInterest = cumulativeInterest,
+                totalPayment = cumulativePrincipal + cumulativeInterest,
+                years = years,
+                allMonths = allMonths
+            )
         }
+
+        // Formatting delegations
+        fun formatIndianCurrency(amount: Double, includeDecimals: Boolean = false): String =
+            CurrencyFormatter.formatIndianCurrency(amount, includeDecimals)
+
+        fun formatInternationalCurrency(amount: Double, includeDecimals: Boolean = false): String =
+            CurrencyFormatter.formatInternationalCurrency(amount, includeDecimals)
 
         fun formatCurrency(
             amount: Double,
             formatStyle: NumberFormatStyle = NumberFormatStyle.INDIAN,
             includeDecimals: Boolean = false
-        ): String {
-            return when (formatStyle) {
-                NumberFormatStyle.INDIAN -> formatIndianCurrency(amount, includeDecimals)
-                NumberFormatStyle.INTERNATIONAL -> formatInternationalCurrency(amount, includeDecimals)
-            }
-        }
+        ): String = CurrencyFormatter.formatCurrency(amount, formatStyle, includeDecimals)
+
+        fun formatCompactIndianLakh(amount: Double): String =
+            CurrencyFormatter.formatCompactIndianLakh(amount)
+
+        fun formatCompactInternational(amount: Double): String =
+            CurrencyFormatter.formatCompactInternational(amount)
+
+        fun formatCompactCurrency(
+            amount: Double,
+            formatStyle: NumberFormatStyle = NumberFormatStyle.INDIAN
+        ): String = CurrencyFormatter.formatCompactCurrency(amount, formatStyle)
+
+        fun formatAmountWithStableCursor(
+            input: TextFieldValue,
+            formatStyle: NumberFormatStyle = NumberFormatStyle.INDIAN,
+            onAmountParsed: (Double) -> Unit = {}
+        ): TextFieldValue = CurrencyFormatter.formatAmountWithStableCursor(input, formatStyle, onAmountParsed)
     }
 }

@@ -108,6 +108,10 @@ import com.example.emicalculatorapp.ui.components.GlassCard
 import com.example.emicalculatorapp.ui.components.GradientPillButton
 import com.example.emicalculatorapp.ui.components.NeonChip
 import com.example.emicalculatorapp.ui.components.QuantumSlider
+import com.example.emicalculatorapp.ui.components.fx.GlowPillSwitch
+import com.example.emicalculatorapp.ui.components.fx.OdometerText
+import com.example.emicalculatorapp.ui.components.fx.ShineButton
+import com.example.emicalculatorapp.ui.components.fx.SweepBorderCard
 import com.example.emicalculatorapp.ui.theme.DonutInterestGradient
 import com.example.emicalculatorapp.ui.theme.DonutPrincipalGradient
 import com.example.emicalculatorapp.ui.theme.EMIverseTheme
@@ -115,12 +119,14 @@ import com.example.emicalculatorapp.ui.theme.EMIverseTypography
 import com.example.emicalculatorapp.ui.theme.ElectricViolet
 import com.example.emicalculatorapp.ui.theme.HeroCtaGradient
 import com.example.emicalculatorapp.ui.theme.HotPink
+import com.example.emicalculatorapp.ui.theme.LocalNumberFormat
 import com.example.emicalculatorapp.ui.theme.LocalReduceMotion
 import com.example.emicalculatorapp.ui.theme.LuminousCyan
 import com.example.emicalculatorapp.ui.theme.OutlineVariant
 import com.example.emicalculatorapp.ui.theme.PrimaryContainer
 import com.example.emicalculatorapp.ui.theme.PrimaryLight
 import com.example.emicalculatorapp.ui.theme.SecondaryContainer
+import com.example.emicalculatorapp.ui.theme.SurfaceBright
 import com.example.emicalculatorapp.ui.theme.SurfaceContainer
 import com.example.emicalculatorapp.ui.theme.SurfaceContainerHigh
 import com.example.emicalculatorapp.ui.theme.SurfaceContainerHighest
@@ -158,6 +164,13 @@ fun CalculatorScreen(
     val tenureValue by viewModel.tenureValue.collectAsStateWithLifecycle()
     val isYearMode by viewModel.isYearMode.collectAsStateWithLifecycle()
     val result by viewModel.result.collectAsStateWithLifecycle()
+    val numberFormat = LocalNumberFormat.current
+
+    // Dragging tracking for OdometerText continuous vs discrete updates
+    var isAmountDragging by remember { mutableStateOf(false) }
+    var isRateDragging by remember { mutableStateOf(false) }
+    var isTenureDragging by remember { mutableStateOf(false) }
+    val isAnySliderDragging = isAmountDragging || isRateDragging || isTenureDragging
 
     val haptic = LocalHapticFeedback.current
 
@@ -338,9 +351,10 @@ fun CalculatorScreen(
             }
 
             // ================= 3. HERO DONUT RESULT CARD =================
-            GlassCard(
+            SweepBorderCard(
                 modifier = Modifier.fillMaxWidth(),
-                backgroundColor = SurfaceContainerLow.copy(alpha = 0.85f)
+                backgroundColor = SurfaceContainerLow.copy(alpha = 0.85f),
+                gradientColors = listOf(LuminousCyan, ElectricViolet, HotPink, LuminousCyan)
             ) {
                 Column(
                     modifier = Modifier
@@ -426,11 +440,14 @@ fun CalculatorScreen(
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(bottom = 4.dp, end = 2.dp)
                                 )
-                                Text(
-                                    text = EMIViewModel.formatIndianCurrency(animatedEmi.toDouble()).replace("₹ ", "").replace("₹", ""),
-                                    style = EMIverseTypography.displayHero,
-                                    color = TextPrimary,
-                                    fontSize = 32.sp
+                                val formattedEmi = EMIViewModel.formatCurrency(animatedEmi.toDouble(), numberFormat)
+                                    .replace("₹ ", "").replace("₹", "")
+
+                                OdometerText(
+                                    text = formattedEmi,
+                                    isContinuous = isAnySliderDragging,
+                                    textStyle = EMIverseTypography.displayHero.copy(fontSize = 32.sp),
+                                    color = TextPrimary
                                 )
                             }
                             Spacer(modifier = Modifier.height(4.dp))
@@ -514,7 +531,7 @@ fun CalculatorScreen(
                 MetricTile(
                     modifier = Modifier.weight(1f),
                     title = "PRINCIPAL",
-                    value = EMIViewModel.formatIndianCurrency(animatedPrincipal.toDouble()),
+                    value = EMIViewModel.formatCurrency(animatedPrincipal.toDouble(), numberFormat),
                     tag = "Direct Capital",
                     tagColor = PrimaryLight,
                     indicator = {
@@ -530,7 +547,7 @@ fun CalculatorScreen(
                 MetricTile(
                     modifier = Modifier.weight(1f),
                     title = "TOTAL INTEREST",
-                    value = EMIViewModel.formatIndianCurrency(animatedInterest.toDouble()),
+                    value = EMIViewModel.formatCurrency(animatedInterest.toDouble(), numberFormat),
                     valueColor = LuminousCyan,
                     tag = "Cost of Credit",
                     tagColor = LuminousCyan,
@@ -554,7 +571,7 @@ fun CalculatorScreen(
                 MetricTile(
                     modifier = Modifier.weight(1f),
                     title = "TOTAL PAYABLE",
-                    value = EMIViewModel.formatIndianCurrency(animatedTotal.toDouble()),
+                    value = EMIViewModel.formatCurrency(animatedTotal.toDouble(), numberFormat),
                     valueColor = HotPink,
                     tag = "Principal + Int",
                     tagColor = TextMuted,
@@ -571,7 +588,7 @@ fun CalculatorScreen(
                 MetricTile(
                     modifier = Modifier.weight(1f),
                     title = "ANNUAL VELOCITY",
-                    value = EMIViewModel.formatIndianCurrency(animatedVelocity.toDouble()),
+                    value = EMIViewModel.formatCurrency(animatedVelocity.toDouble(), numberFormat),
                     tag = "12x Installments",
                     tagColor = LuminousCyan,
                     indicator = {
@@ -623,17 +640,17 @@ fun CalculatorScreen(
                         )
 
                         var amountFieldValue by remember {
-                            val initialFormatted = EMIViewModel.formatIndianCurrency(loanAmount)
+                            val initialFormatted = EMIViewModel.formatCurrency(loanAmount, numberFormat)
                                 .replace("₹ ", "").replace("₹", "")
                             mutableStateOf(TextFieldValue(initialFormatted, TextRange(initialFormatted.length)))
                         }
 
-                        // Keep field updated when slider or preset changes externally
-                        LaunchedEffect(loanAmount) {
+                        // Keep field updated when slider, preset, or number format changes externally
+                        LaunchedEffect(loanAmount, numberFormat) {
                             val currentParsed = amountFieldValue.text.filter { it.isDigit() }.toDoubleOrNull() ?: 0.0
-                            if (currentParsed != loanAmount) {
-                                val formatted = EMIViewModel.formatIndianCurrency(loanAmount)
-                                    .replace("₹ ", "").replace("₹", "")
+                            val formatted = EMIViewModel.formatCurrency(loanAmount, numberFormat)
+                                .replace("₹ ", "").replace("₹", "")
+                            if (currentParsed != loanAmount || amountFieldValue.text != formatted) {
                                 amountFieldValue = TextFieldValue(formatted, TextRange(formatted.length))
                             }
                         }
@@ -641,7 +658,7 @@ fun CalculatorScreen(
                         BasicTextField(
                             value = amountFieldValue,
                             onValueChange = { input ->
-                                amountFieldValue = formatAmountWithStableCursor(input) { parsed ->
+                                amountFieldValue = EMIViewModel.formatAmountWithStableCursor(input, numberFormat) { parsed ->
                                     if (parsed in 100000.0..10000000.0) {
                                         viewModel.setLoanAmount(parsed)
                                     }
@@ -668,7 +685,7 @@ fun CalculatorScreen(
                                     if (!focusState.isFocused) {
                                         val clean = amountFieldValue.text.filter { it.isDigit() }.toDoubleOrNull() ?: 100000.0
                                         viewModel.setLoanAmount(clean)
-                                        val formatted = EMIViewModel.formatIndianCurrency(loanAmount)
+                                        val formatted = EMIViewModel.formatCurrency(loanAmount, numberFormat)
                                             .replace("₹ ", "").replace("₹", "")
                                         amountFieldValue = TextFieldValue(formatted, TextRange(formatted.length))
                                     }
@@ -721,7 +738,8 @@ fun CalculatorScreen(
                     onValueChange = { viewModel.setLoanAmount(it.toDouble()) },
                     valueRange = 100000f..10000000f,
                     stepHapticThreshold = 50000f,
-                    bubbleText = EMIViewModel.formatCompactIndianLakh(loanAmount)
+                    bubbleText = EMIViewModel.formatCompactCurrency(loanAmount, numberFormat),
+                    onDraggingChanged = { isAmountDragging = it }
                 )
 
                 Row(
@@ -863,7 +881,8 @@ fun CalculatorScreen(
                     stepHapticThreshold = 0.05f,
                     bubbleText = String.format(Locale.US, "%.2f%%", interestRate),
                     activeGradient = Brush.horizontalGradient(listOf(HotPink, TertiaryContainer)),
-                    ringColor = HotPink
+                    ringColor = HotPink,
+                    onDraggingChanged = { isRateDragging = it }
                 )
 
                 Row(
@@ -889,25 +908,14 @@ fun CalculatorScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Segmented Toggle (Yr / Mo)
-                    Row(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(SurfaceContainerLowest.copy(alpha = 0.85f))
-                            .padding(3.dp),
-                        horizontalArrangement = Arrangement.spacedBy(3.dp)
-                    ) {
-                        SegmentToggleItem(
-                            label = "Yr",
-                            isActive = isYearMode,
-                            onClick = { viewModel.setYearMode(true) }
-                        )
-                        SegmentToggleItem(
-                            label = "Mo",
-                            isActive = !isYearMode,
-                            onClick = { viewModel.setYearMode(false) }
-                        )
-                    }
+                    // Segmented Toggle (Yr / Mo) using GlowPillSwitch
+                    GlowPillSwitch(
+                        options = listOf(true, false),
+                        selectedOption = isYearMode,
+                        onOptionSelected = { viewModel.setYearMode(it) },
+                        labelProvider = { if (it) "Yr" else "Mo" },
+                        modifier = Modifier.width(96.dp).height(36.dp)
+                    )
 
                     // Inset Editable Field with Stable Cursor
                     Row(
@@ -1011,7 +1019,8 @@ fun CalculatorScreen(
                     stepHapticThreshold = 1f,
                     bubbleText = if (isYearMode) "$tenureValue Yrs" else "$tenureValue Mo",
                     activeGradient = Brush.horizontalGradient(listOf(ElectricViolet, PrimaryContainer)),
-                    ringColor = PrimaryLight
+                    ringColor = PrimaryLight,
+                    onDraggingChanged = { isTenureDragging = it }
                 )
 
                 Row(
@@ -1137,31 +1146,21 @@ fun CalculatorScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Ghost Reset Button
-                GhostPillButton(
+                // Shine Reset Button
+                ShineButton(
+                    text = "Reset",
                     onClick = { viewModel.resetToHomePreset() },
-                    modifier = Modifier.width(100.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.RestartAlt,
-                        contentDescription = "Reset",
-                        tint = TextSecondary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Reset",
-                        style = EMIverseTypography.labelMd,
-                        color = TextSecondary
-                    )
-                }
+                    modifier = Modifier.width(100.dp),
+                    gradientBrush = Brush.horizontalGradient(listOf(SurfaceContainerHigh, SurfaceBright))
+                )
 
-                // Gradient Save & Share Quote Button
+                // Shine Save & Share Quote Button
                 Box(
                     modifier = Modifier.weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    GradientPillButton(
+                    ShineButton(
+                        text = "Save & Share Quote",
                         onClick = {
                             if (!isSharing) {
                                 isSharing = true
@@ -1176,13 +1175,13 @@ fun CalculatorScreen(
                                         🚀 EMIverse Loan Quote Summary
                                         ---------------------------------
                                         • Category: ${selectedCategory.title} Loan
-                                        • Loan Amount: ${EMIViewModel.formatIndianCurrency(loanAmount)}
+                                        • Loan Amount: ${EMIViewModel.formatCurrency(loanAmount, numberFormat)}
                                         • Interest Rate: ${String.format(Locale.US, "%.2f%%", interestRate)} p.a.
                                         • Tenure: $tenureStr
                                         
-                                        💎 Monthly EMI: ${EMIViewModel.formatIndianCurrency(result.monthlyEMI)}
-                                        📊 Total Interest: ${EMIViewModel.formatIndianCurrency(result.totalInterest)}
-                                        💰 Total Payable: ${EMIViewModel.formatIndianCurrency(result.totalPayment)}
+                                        💎 Monthly EMI: ${EMIViewModel.formatCurrency(result.monthlyEMI, numberFormat)}
+                                        📊 Total Interest: ${EMIViewModel.formatCurrency(result.totalInterest, numberFormat)}
+                                        💰 Total Payable: ${EMIViewModel.formatCurrency(result.totalPayment, numberFormat)}
                                         
                                         Generated with EMIverse Quantum Engine
                                     """.trimIndent()
@@ -1198,26 +1197,8 @@ fun CalculatorScreen(
                                 }
                             }
                         },
-                        modifier = Modifier.fillMaxWidth(),
-                        gradient = Brush.horizontalGradient(
-                            listOf(TertiaryContainer, PrimaryContainer, SecondaryContainer)
-                        ),
-                        glowColor = HotPink.copy(alpha = 0.45f)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.IosShare,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Save & Share Quote",
-                            style = EMIverseTypography.labelLg,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
                     // Confetti Particle Burst Anchor
                     ConfettiBurst(
@@ -1535,6 +1516,7 @@ private fun SegmentToggleItem(
 
 @Composable
 private fun MilestoneRow(milestone: com.example.emicalculatorapp.model.AmortizationMilestone) {
+    val numberFormat = LocalNumberFormat.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -1555,7 +1537,7 @@ private fun MilestoneRow(milestone: com.example.emicalculatorapp.model.Amortizat
                 color = TextPrimary
             )
             Text(
-                text = "Balance: ${EMIViewModel.formatCompactIndianLakh(milestone.remainingBalance)}",
+                text = "Balance: ${EMIViewModel.formatCompactCurrency(milestone.remainingBalance, numberFormat)}",
                 style = EMIverseTypography.bodySm,
                 color = LuminousCyan,
                 fontWeight = FontWeight.Bold
@@ -1589,13 +1571,13 @@ private fun MilestoneRow(milestone: com.example.emicalculatorapp.model.Amortizat
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Principal ${EMIViewModel.formatCompactIndianLakh(milestone.principalPaidSoFar)} (${milestone.principalPercentInYear.roundToInt()}%)",
+                text = "Principal ${EMIViewModel.formatCompactCurrency(milestone.principalPaidSoFar, numberFormat)} (${milestone.principalPercentInYear.roundToInt()}%)",
                 style = EMIverseTypography.labelCaps,
                 color = TextMuted,
                 fontSize = 9.sp
             )
             Text(
-                text = "Interest ${EMIViewModel.formatCompactIndianLakh(milestone.interestPaidSoFar)} (${milestone.interestPercentInYear.roundToInt()}%)",
+                text = "Interest ${EMIViewModel.formatCompactCurrency(milestone.interestPaidSoFar, numberFormat)} (${milestone.interestPercentInYear.roundToInt()}%)",
                 style = EMIverseTypography.labelCaps,
                 color = TextMuted,
                 fontSize = 9.sp

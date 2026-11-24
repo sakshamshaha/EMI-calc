@@ -84,7 +84,7 @@ fun SavedQuotesScreen(
                         modifier = Modifier.size(24.dp)
                     )
                     Text(
-                        text = "Encrypted Local Room Vault",
+                        text = "Saved Loan Quotes",
                         fontFamily = SpaceGroteskFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
@@ -96,7 +96,7 @@ fun SavedQuotesScreen(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "Phase 6 integrates full Room persistence for saving custom quotes, animated vector checkmarks, confetti celebratory feedback, and instant reload into the calculator.",
+                    text = "Your saved quotes will appear here. Phase 6 integrates full Room persistence for saving custom quotes, animated vector checkmarks, celebratory feedback, and instant reload into the calculator.",
                     fontFamily = InterFamily,
                     fontSize = 13.sp,
                     color = TextSecondary,

@@ -70,13 +70,18 @@ fun QuantumSlider(
     bubbleText: String = "",
     activeGradient: Brush = Brush.horizontalGradient(listOf(ElectricViolet, LuminousCyan)),
     ringColor: Color = LuminousCyan,
-    stepHapticThreshold: Float = 0f
+    stepHapticThreshold: Float = 0f,
+    onDraggingChanged: ((Boolean) -> Unit)? = null
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val isDragged by interactionSource.collectIsDraggedAsState()
     val isActive = isPressed || isDragged
     val reduceMotion = LocalReduceMotion.current
+
+    LaunchedEffect(isActive) {
+        onDraggingChanged?.invoke(isActive)
+    }
 
     val haptic = LocalHapticFeedback.current
     var lastHapticValue by remember { mutableFloatStateOf(value) }

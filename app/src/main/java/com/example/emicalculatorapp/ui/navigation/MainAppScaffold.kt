@@ -1,9 +1,13 @@
 package com.example.emicalculatorapp.ui.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -11,9 +15,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -36,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -75,8 +82,20 @@ fun MainAppScaffold(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: NavDestination.Calculate.route
     val reduceMotion = LocalReduceMotion.current
+    val density = LocalDensity.current
+    val isKeyboardOpen = WindowInsets.ime.getBottom(density) > 0
 
     var showSettingsSheet by remember { mutableStateOf(false) }
+
+    // Intercept Back button: if not on Calculate tab, return to Calculate first
+    BackHandler(enabled = currentRoute != NavDestination.Calculate.route) {
+        navController.navigate(NavDestination.Calculate.route) {
+            popUpTo(NavDestination.Calculate.route) {
+                inclusive = false
+            }
+            launchSingleTop = true
+        }
+    }
 
     Box(modifier = modifier.fillMaxSize().background(CanvasColor)) {
         // Shared luminous ambient background
@@ -146,24 +165,33 @@ fun MainAppScaffold(
                 }
             },
             bottomBar = {
-                GlassBottomBar(
-                    currentRoute = currentRoute,
-                    onNavigate = { destination ->
-                        navController.navigate(destination.route) {
-                            popUpTo(NavDestination.Calculate.route) {
-                                saveState = true
+                AnimatedVisibility(
+                    visible = !isKeyboardOpen,
+                    enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+                ) {
+                    GlassBottomBar(
+                        currentRoute = currentRoute,
+                        onNavigate = { destination ->
+                            navController.navigate(destination.route) {
+                                popUpTo(NavDestination.Calculate.route) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
                         }
-                    }
-                )
+                    )
+                }
             }
         ) { innerPadding ->
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = innerPadding.calculateTopPadding())
+                    .padding(
+                        top = innerPadding.calculateTopPadding(),
+                        bottom = if (isKeyboardOpen) 0.dp else innerPadding.calculateBottomPadding()
+                    )
             ) {
                 NavHost(
                     navController = navController,
