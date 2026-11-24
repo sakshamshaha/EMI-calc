@@ -79,6 +79,27 @@ class EMIViewModel : ViewModel() {
         liveRate = _interestRate,
         liveTenure = _tenureValue
     )
+    private val _numberFormat = MutableStateFlow(NumberFormatStyle.INDIAN)
+    val numberFormat: StateFlow<NumberFormatStyle> = _numberFormat.asStateFlow()
+    fun setNumberFormat(format: NumberFormatStyle) {
+        _numberFormat.value = format
+    }
+
+    val insightsState = InsightsState(
+        scope = viewModelScope,
+        loanAmount = _loanAmount,
+        interestRate = _interestRate,
+        tenureValue = _tenureValue,
+        isYearMode = _isYearMode,
+        numberFormat = _numberFormat
+    )
+    val insights: StateFlow<List<com.example.emicalculatorapp.model.LoanInsight>> = insightsState.insights
+    val rateSensitivity: StateFlow<List<com.example.emicalculatorapp.model.RateSensitivityPoint>> = insightsState.sensitivityPoints
+
+    fun getMathBreakdown(): com.example.emicalculatorapp.model.MathBreakdown {
+        val n = if (_isYearMode.value) _tenureValue.value * 12 else _tenureValue.value
+        return EMICalculator.calculateMathBreakdown(_loanAmount.value, _interestRate.value, n)
+    }
 
     // Direct Forwarders for Prepayment State
     val prepaymentParams: StateFlow<PrepaymentParams> = prepayment.params

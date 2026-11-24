@@ -297,7 +297,7 @@ fun SaveQuoteBottomSheet(
 
                     // Save Button
                     ShineButton(
-                        text = "Save Quote to Vault",
+                        text = "Save Quote",
                         onClick = {
                             if (isValid) {
                                 isSavingSuccess = true

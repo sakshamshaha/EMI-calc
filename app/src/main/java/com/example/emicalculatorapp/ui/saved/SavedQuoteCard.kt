@@ -23,26 +23,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.School
-import androidx.compose.material.icons.filled.Work
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.outlined.PushPin
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -53,7 +46,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -118,23 +110,7 @@ fun SavedQuoteCard(
     SwipeToDismissBox(
         state = dismissState,
         backgroundContent = {
-            val direction = dismissState.dismissDirection
-            val color = HotPink.copy(alpha = 0.85f)
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(color)
-                    .padding(horizontal = 24.dp),
-                contentAlignment = if (direction == SwipeToDismissBoxValue.StartToEnd) Alignment.CenterStart else Alignment.CenterEnd
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = TextPrimary,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            QuoteCardDismissBackground(dismissDirection = dismissState.dismissDirection)
         },
         enableDismissFromStartToEnd = !isSelectionMode,
         enableDismissFromEndToStart = !isSelectionMode,
@@ -294,88 +270,23 @@ fun SavedQuoteCard(
                 Spacer(modifier = Modifier.height(14.dp))
 
                 // Metric Grid: Amount, Rate, Tenure, Computed EMI
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        Text(text = "Amount", fontFamily = InterFamily, fontSize = 11.sp, color = TextMuted)
-                        Text(
-                            text = EMIViewModel.formatCurrency(quote.principal, numberFormat),
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 13.sp,
-                            color = TextPrimary
-                        )
-                    }
-                    Column {
-                        Text(text = "Rate / Tenure", fontFamily = InterFamily, fontSize = 11.sp, color = TextMuted)
-                        Text(
-                            text = "${String.format(Locale.US, "%.2f%%", quote.annualRate)} • ${computed.formattedTenure}",
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 13.sp,
-                            color = TextPrimary
-                        )
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(text = "Monthly EMI", fontFamily = InterFamily, fontSize = 11.sp, color = TextMuted)
-                        Text(
-                            text = EMIViewModel.formatCurrency(computed.monthlyEMI, numberFormat),
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = LuminousCyan
-                        )
-                    }
-                }
+                QuoteMetricsGrid(
+                    quote = quote,
+                    computed = computed,
+                    numberFormat = numberFormat
+                )
             }
         }
     }
 
-    // Rename Dialog
     if (showRenameDialog) {
-        val isValid = renameInput.trim().isNotEmpty() && renameInput.trim().length <= 40
-        AlertDialog(
-            onDismissRequest = { showRenameDialog = false },
-            title = { Text(text = "Rename Loan Quote", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold) },
-            text = {
-                Column {
-                    OutlinedTextField(
-                        value = renameInput,
-                        onValueChange = { if (it.length <= 40) renameInput = it },
-                        label = { Text("Quote Name") },
-                        supportingText = { Text("${renameInput.length}/40") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+        QuoteRenameDialog(
+            initialName = quote.name,
+            onConfirm = { newName ->
+                onRename(newName)
+                showRenameDialog = false
             },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        if (isValid) {
-                            onRename(renameInput.trim())
-                            showRenameDialog = false
-                        }
-                    },
-                    enabled = isValid
-                ) {
-                    Text("Rename", fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showRenameDialog = false }) {
-                    Text("Cancel")
-                }
-            }
+            onDismiss = { showRenameDialog = false }
         )
     }
-}
-
-private fun getCategoryIcon(category: LoanCategory): ImageVector = when (category) {
-    LoanCategory.HOME -> Icons.Default.Home
-    LoanCategory.CAR -> Icons.Default.DirectionsCar
-    LoanCategory.PERSONAL -> Icons.Default.Work
-    LoanCategory.EDUCATION -> Icons.Default.School
 }

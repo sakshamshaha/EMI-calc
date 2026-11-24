@@ -1,6 +1,8 @@
 package com.example.emicalculatorapp.ui.calculator
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Functions
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -36,6 +42,7 @@ import com.example.emicalculatorapp.ui.theme.ElectricViolet
 import com.example.emicalculatorapp.ui.theme.HotPink
 import com.example.emicalculatorapp.ui.theme.LuminousCyan
 import com.example.emicalculatorapp.ui.theme.PrimaryLight
+import com.example.emicalculatorapp.ui.theme.SpaceGroteskFamily
 import com.example.emicalculatorapp.ui.theme.SurfaceContainer
 import com.example.emicalculatorapp.ui.theme.SurfaceContainerHigh
 import com.example.emicalculatorapp.ui.theme.SurfaceContainerLow
@@ -52,6 +59,7 @@ fun HeroDonutCard(
     tenureValue: Int,
     isAnySliderDragging: Boolean,
     numberFormat: NumberFormatStyle,
+    onSeeMathClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     SweepBorderCard(
@@ -220,6 +228,34 @@ fun HeroDonutCard(
                         color = LuminousCyan
                     )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // "See the math" educational CTA
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(LuminousCyan.copy(alpha = 0.12f))
+                    .border(1.dp, LuminousCyan.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
+                    .clickable(onClick = onSeeMathClick)
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Functions,
+                    contentDescription = "See the math",
+                    tint = LuminousCyan,
+                    modifier = Modifier.size(15.dp)
+                )
+                Text(
+                    text = "See the math",
+                    fontFamily = SpaceGroteskFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 11.sp,
+                    color = LuminousCyan
+                )
             }
         }
     }

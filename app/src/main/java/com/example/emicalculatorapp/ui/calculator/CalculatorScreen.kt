@@ -88,6 +88,8 @@ fun CalculatorScreen(
     val tenureValue by viewModel.tenureValue.collectAsStateWithLifecycle()
     val isYearMode by viewModel.isYearMode.collectAsStateWithLifecycle()
     val result by viewModel.result.collectAsStateWithLifecycle()
+    val insights by viewModel.insights.collectAsStateWithLifecycle()
+    val sensitivityPoints by viewModel.rateSensitivity.collectAsStateWithLifecycle()
     val numberFormat = LocalNumberFormat.current
 
     // Dragging tracking for OdometerText continuous vs discrete updates
@@ -95,6 +97,8 @@ fun CalculatorScreen(
     var isRateDragging by remember { mutableStateOf(false) }
     var isTenureDragging by remember { mutableStateOf(false) }
     val isAnySliderDragging = isAmountDragging || isRateDragging || isTenureDragging
+
+    var showSeeMathSheet by remember { mutableStateOf(false) }
 
     // Entrance animation: runs once smoothly on first appearance without replaying
     var hasEntered by rememberSaveable { mutableStateOf(false) }
@@ -172,66 +176,7 @@ fun CalculatorScreen(
         ) {
             // ================= 1. TOP BAR =================
             if (showTopBar) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp, bottom = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(
-                        onClick = onNavigateBack,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(SurfaceContainerHigh.copy(alpha = 0.8f))
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = TextPrimary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .drawBehind {
-                                    drawCircle(
-                                        color = LuminousCyan.copy(alpha = 0.5f),
-                                        radius = size.maxDimension * 0.8f
-                                    )
-                                }
-                                .clip(CircleShape)
-                                .background(LuminousCyan)
-                        )
-                        Text(
-                            text = "EMI Calculator",
-                            style = EMIverseTypography.headlineSm,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    IconButton(
-                        onClick = { /* Presets / Settings */ },
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(SurfaceContainerHigh.copy(alpha = 0.8f))
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Tune,
-                            contentDescription = "Presets",
-                            tint = TextSecondary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
+                CalculatorHeaderRow(onNavigateBack = onNavigateBack)
             }
 
             // ================= 2. LOAN CATEGORY FILTER PILLS =================
@@ -247,7 +192,8 @@ fun CalculatorScreen(
                 isYearMode = isYearMode,
                 tenureValue = tenureValue,
                 isAnySliderDragging = isAnySliderDragging,
-                numberFormat = numberFormat
+                numberFormat = numberFormat,
+                onSeeMathClick = { showSeeMathSheet = true }
             )
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -261,35 +207,29 @@ fun CalculatorScreen(
                 numberFormat = numberFormat
             )
 
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // ================= SMART INSIGHTS & RATE SENSITIVITY =================
+            InsightsCarousel(insights = insights)
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            RateSensitivityStrip(points = sensitivityPoints, numberFormat = numberFormat)
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // ================= 5. INTERACTIVE CONTROL CARDS =================
-            LoanAmountCard(
+            CalculatorInputCardsSection(
                 loanAmount = loanAmount,
-                onAmountChanged = { viewModel.setLoanAmount(it) },
-                onDraggingChanged = { isAmountDragging = it },
-                numberFormat = numberFormat,
-                focusManager = focusManager
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            InterestRateCard(
                 interestRate = interestRate,
-                onRateChanged = { viewModel.setInterestRate(it) },
-                onDraggingChanged = { isRateDragging = it },
-                focusManager = focusManager
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            LoanTenureCard(
                 tenureValue = tenureValue,
                 isYearMode = isYearMode,
-                onTenureChanged = { viewModel.setTenureValue(it) },
-                onYearModeChanged = { viewModel.setYearMode(it) },
-                onDraggingChanged = { isTenureDragging = it },
-                focusManager = focusManager
+                numberFormat = numberFormat,
+                viewModel = viewModel,
+                focusManager = focusManager,
+                onAmountDraggingChanged = { isAmountDragging = it },
+                onRateDraggingChanged = { isRateDragging = it },
+                onTenureDraggingChanged = { isTenureDragging = it }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -315,46 +255,28 @@ fun CalculatorScreen(
             )
         }
 
-        if (showSaveSheet) {
-            SaveQuoteBottomSheet(
-                category = selectedCategory,
-                principal = loanAmount,
-                annualRate = interestRate,
-                tenureMonths = if (isYearMode) tenureValue * 12 else tenureValue,
-                processingFeePercent = 0.0,
+        CalculatorSaveDialogHost(
+            showSaveSheet = showSaveSheet,
+            onDismissSheet = { showSaveSheet = false },
+            selectedCategory = selectedCategory,
+            loanAmount = loanAmount,
+            interestRate = interestRate,
+            tenureValue = tenureValue,
+            isYearMode = isYearMode,
+            numberFormat = numberFormat,
+            savedQuotesState = savedQuotesState,
+            onNavigateToSaved = onNavigateToSaved,
+            coroutineScope = coroutineScope,
+            snackbarHostState = snackbarHostState
+        )
+
+        if (showSeeMathSheet) {
+            SeeTheMathBottomSheet(
+                breakdown = viewModel.getMathBreakdown(),
                 numberFormat = numberFormat,
-                onSaveQuote = { quoteName ->
-                    savedQuotesState?.saveQuote(
-                        name = quoteName,
-                        category = selectedCategory,
-                        principal = loanAmount,
-                        rate = interestRate,
-                        tenureMonths = if (isYearMode) tenureValue * 12 else tenureValue,
-                        processingFeePercent = 0.0,
-                        onSaved = {
-                            coroutineScope.launch {
-                                val snackRes = snackbarHostState.showSnackbar(
-                                    message = "Quote saved to Vault",
-                                    actionLabel = "View",
-                                    duration = SnackbarDuration.Short
-                                )
-                                if (snackRes == SnackbarResult.ActionPerformed) {
-                                    onNavigateToSaved()
-                                }
-                            }
-                        }
-                    )
-                },
-                onDismiss = { showSaveSheet = false }
+                onDismiss = { showSeeMathSheet = false }
             )
         }
-
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 85.dp, start = 16.dp, end = 16.dp)
-        )
     }
 }
 

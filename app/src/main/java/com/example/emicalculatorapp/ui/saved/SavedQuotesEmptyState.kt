@@ -43,7 +43,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * Animated native Canvas illustration of a geometric quantum holographic vault.
+ * Animated native Canvas illustration of a geometric quantum holographic emblem.
  * Rebuilt purely via Canvas draw primitives without static raster assets.
  */
 @Composable
@@ -56,7 +56,7 @@ fun SavedQuotesEmptyState(
     val shouldAnimate = !reduceMotion && effectsLevel != EffectsLevel.LITE
 
     val rotationDegrees = if (shouldAnimate) {
-        val transition = rememberInfiniteTransition(label = "VaultRotation")
+        val transition = rememberInfiniteTransition(label = "EmblemRotation")
         val angle by transition.animateFloat(
             initialValue = 0f,
             targetValue = 360f,
@@ -78,7 +78,7 @@ fun SavedQuotesEmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Holographic Vault Canvas Animation
+        // Holographic Emblem Canvas Animation
         Canvas(modifier = Modifier.size(160.dp)) {
             val center = Offset(size.width / 2f, size.height / 2f)
             val outerRadius = size.width * 0.42f
@@ -141,7 +141,7 @@ fun SavedQuotesEmptyState(
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = "Your Loan Vault is Empty",
+            text = "No Saved Quotes Yet",
             fontFamily = SpaceGroteskFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,

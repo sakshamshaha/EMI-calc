@@ -170,7 +170,7 @@ fun CompareScreen(
                         onSaved = {
                             coroutineScope.launch {
                                 val res = snackbarHostState.showSnackbar(
-                                    message = "Loan A saved to Vault",
+                                    message = "Saved",
                                     actionLabel = "View",
                                     duration = SnackbarDuration.Short
                                 )
@@ -205,7 +205,7 @@ fun CompareScreen(
                         onSaved = {
                             coroutineScope.launch {
                                 val res = snackbarHostState.showSnackbar(
-                                    message = "Loan B saved to Vault",
+                                    message = "Saved",
                                     actionLabel = "View",
                                     duration = SnackbarDuration.Short
                                 )
