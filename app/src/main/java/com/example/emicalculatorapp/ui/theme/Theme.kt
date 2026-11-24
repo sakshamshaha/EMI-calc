@@ -13,8 +13,13 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.example.emicalculatorapp.data.settings.EffectsLevel
+import com.example.emicalculatorapp.data.settings.NumberFormatStyle
 
 val LocalReduceMotion = compositionLocalOf { false }
+val LocalEffectsLevel = compositionLocalOf { EffectsLevel.BALANCED }
+val LocalNumberFormat = compositionLocalOf { NumberFormatStyle.INDIAN }
+val LocalHapticsEnabled = compositionLocalOf { true }
 
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryLight,
@@ -63,6 +68,9 @@ fun isSystemReduceMotionEnabled(): Boolean {
  */
 @Composable
 fun EMIverseTheme(
+    effectsLevel: EffectsLevel = EffectsLevel.BALANCED,
+    numberFormat: NumberFormatStyle = NumberFormatStyle.INDIAN,
+    hapticsEnabled: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val colorScheme = DarkColorScheme
@@ -74,7 +82,9 @@ fun EMIverseTheme(
             val window = (view.context as? Activity)?.window
             if (window != null) {
                 // Transparent status and navigation bars for seamless edge-to-edge
+                @Suppress("DEPRECATION")
                 window.statusBarColor = CanvasColor.toArgb()
+                @Suppress("DEPRECATION")
                 window.navigationBarColor = CanvasColor.toArgb()
                 val insetsController = WindowCompat.getInsetsController(window, view)
                 // False means light icons on dark status/nav bars
@@ -84,7 +94,12 @@ fun EMIverseTheme(
         }
     }
 
-    CompositionLocalProvider(LocalReduceMotion provides reduceMotion) {
+    CompositionLocalProvider(
+        LocalReduceMotion provides reduceMotion,
+        LocalEffectsLevel provides effectsLevel,
+        LocalNumberFormat provides numberFormat,
+        LocalHapticsEnabled provides hapticsEnabled
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             shapes = EMIverseShapes,

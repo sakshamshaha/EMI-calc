@@ -1,6 +1,7 @@
 package com.example.emicalculatorapp.viewmodel
 
 import androidx.lifecycle.ViewModel
+import com.example.emicalculatorapp.data.settings.NumberFormatStyle
 import com.example.emicalculatorapp.model.AmortizationMilestone
 import com.example.emicalculatorapp.model.EMICalculationResult
 import com.example.emicalculatorapp.model.LoanCategory
@@ -255,6 +256,49 @@ class EMIViewModel : ViewModel() {
                 String.format(Locale.US, "₹%.1f L", lakhs)
             } else {
                 String.format(Locale.US, "₹%.0f K", amount / 1000.0)
+            }
+        }
+
+        fun formatInternationalCurrency(amount: Double, includeDecimals: Boolean = false): String {
+            val roundedAmount = round(amount).toLong()
+            val isNegative = roundedAmount < 0
+            val absVal = abs(roundedAmount)
+            val s = absVal.toString()
+            val grouped = if (s.length <= 3) {
+                s
+            } else {
+                val lastThree = s.substring(s.length - 3)
+                val remaining = s.substring(0, s.length - 3)
+                val sb = StringBuilder()
+                var count = 0
+                for (i in remaining.length - 1 downTo 0) {
+                    sb.append(remaining[i])
+                    count++
+                    if (count == 3 && i != 0) {
+                        sb.append(',')
+                        count = 0
+                    }
+                }
+                sb.reverse().toString() + "," + lastThree
+            }
+
+            val prefix = if (isNegative) "-₹ " else "₹ "
+            return if (includeDecimals) {
+                val cents = abs((amount * 100).toLong() % 100)
+                String.format(Locale.US, "%s%s.%02d", prefix, grouped, cents)
+            } else {
+                "$prefix$grouped"
+            }
+        }
+
+        fun formatCurrency(
+            amount: Double,
+            formatStyle: NumberFormatStyle = NumberFormatStyle.INDIAN,
+            includeDecimals: Boolean = false
+        ): String {
+            return when (formatStyle) {
+                NumberFormatStyle.INDIAN -> formatIndianCurrency(amount, includeDecimals)
+                NumberFormatStyle.INTERNATIONAL -> formatInternationalCurrency(amount, includeDecimals)
             }
         }
     }

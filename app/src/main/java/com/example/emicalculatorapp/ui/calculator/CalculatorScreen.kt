@@ -140,7 +140,8 @@ import kotlin.math.roundToInt
 fun CalculatorScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: EMIViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: EMIViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    showTopBar: Boolean = false
 ) {
     BackHandler { onNavigateBack() }
 
@@ -239,64 +240,66 @@ fun CalculatorScreen(
                 .padding(horizontal = 18.dp, vertical = 12.dp)
         ) {
             // ================= 1. TOP BAR =================
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp, bottom = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = onNavigateBack,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(SurfaceContainerHigh.copy(alpha = 0.8f))
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = TextPrimary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
+            if (showTopBar) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .drawBehind {
-                                drawCircle(
-                                    color = LuminousCyan.copy(alpha = 0.5f),
-                                    radius = size.maxDimension * 0.8f
-                                )
-                            }
-                            .clip(CircleShape)
-                            .background(LuminousCyan)
-                    )
-                    Text(
-                        text = "EMI Calculator",
-                        style = EMIverseTypography.headlineSm,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                IconButton(
-                    onClick = { /* Presets / Settings */ },
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(SurfaceContainerHigh.copy(alpha = 0.8f))
+                        .fillMaxWidth()
+                        .padding(top = 4.dp, bottom = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Tune,
-                        contentDescription = "Presets",
-                        tint = TextSecondary,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    IconButton(
+                        onClick = onNavigateBack,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(SurfaceContainerHigh.copy(alpha = 0.8f))
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = TextPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .drawBehind {
+                                    drawCircle(
+                                        color = LuminousCyan.copy(alpha = 0.5f),
+                                        radius = size.maxDimension * 0.8f
+                                    )
+                                }
+                                .clip(CircleShape)
+                                .background(LuminousCyan)
+                        )
+                        Text(
+                            text = "EMI Calculator",
+                            style = EMIverseTypography.headlineSm,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    IconButton(
+                        onClick = { /* Presets / Settings */ },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(SurfaceContainerHigh.copy(alpha = 0.8f))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Tune,
+                            contentDescription = "Presets",
+                            tint = TextSecondary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
 

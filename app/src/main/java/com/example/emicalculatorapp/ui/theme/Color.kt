@@ -33,6 +33,7 @@ val TertiaryContainer = Color(0xFFF751A1)
 val OnTertiary = Color(0xFF640039)
 
 val NeoEmerald = Color(0xFF10B981)
+val MintGreen = NeoEmerald
 
 // Text & Outlines
 val TextPrimary = Color(0xFFF8FAFC)

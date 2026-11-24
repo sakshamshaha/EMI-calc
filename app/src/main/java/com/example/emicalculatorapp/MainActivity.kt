@@ -1,6 +1,5 @@
 package com.example.emicalculatorapp
 
-import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
@@ -18,36 +17,51 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.TransformOrigin
-import com.example.emicalculatorapp.ui.calculator.CalculatorScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.emicalculatorapp.data.settings.NumberFormatStyle
+import com.example.emicalculatorapp.data.settings.SettingsRepository
 import com.example.emicalculatorapp.ui.getstarted.GetStartedScreen
+import com.example.emicalculatorapp.ui.navigation.MainAppScaffold
 import com.example.emicalculatorapp.ui.theme.EMIverseTheme
 import com.example.emicalculatorapp.ui.theme.LocalReduceMotion
+import com.example.emicalculatorapp.viewmodel.EMIViewModel
+import kotlinx.coroutines.launch
 
 enum class ScreenState {
     GET_STARTED,
-    CALCULATOR
+    MAIN_APP
 }
 
 class MainActivity : ComponentActivity() {
-
-    private val PREFS_NAME = "emiverse_prefs"
-    private val KEY_FIRST_LAUNCH = "is_first_launch"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         configureHighRefreshRate()
 
-        val sharedPrefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val isFirstLaunch = sharedPrefs.getBoolean(KEY_FIRST_LAUNCH, true)
+        val settingsRepository = SettingsRepository(applicationContext)
 
         setContent {
-            EMIverseTheme {
-                var currentScreen by remember {
+            val coroutineScope = rememberCoroutineScope()
+            val sharedViewModel: EMIViewModel = viewModel()
+
+            val isFirstLaunch by settingsRepository.isFirstLaunchFlow.collectAsStateWithLifecycle(initialValue = false)
+            val effectsLevel by settingsRepository.effectsLevelFlow.collectAsStateWithLifecycle(initialValue = settingsRepository.defaultEffectsLevel)
+            val numberFormat by settingsRepository.numberFormatFlow.collectAsStateWithLifecycle(initialValue = NumberFormatStyle.INDIAN)
+            val hapticsEnabled by settingsRepository.hapticsEnabledFlow.collectAsStateWithLifecycle(initialValue = true)
+
+            EMIverseTheme(
+                effectsLevel = effectsLevel,
+                numberFormat = numberFormat,
+                hapticsEnabled = hapticsEnabled
+            ) {
+                var currentScreen by remember(isFirstLaunch) {
                     mutableStateOf(
-                        if (isFirstLaunch) ScreenState.GET_STARTED else ScreenState.CALCULATOR
+                        if (isFirstLaunch) ScreenState.GET_STARTED else ScreenState.MAIN_APP
                     )
                 }
 
@@ -57,7 +71,7 @@ class MainActivity : ComponentActivity() {
                     transitionSpec = {
                         if (reduceMotion) {
                             fadeIn(animationSpec = tween(0)) togetherWith fadeOut(animationSpec = tween(0))
-                        } else if (targetState == ScreenState.CALCULATOR) {
+                        } else if (targetState == ScreenState.MAIN_APP) {
                             // Expanding reveal transition: scales up gracefully from the launch button position
                             (scaleIn(
                                 initialScale = 0.92f,
@@ -91,15 +105,18 @@ class MainActivity : ComponentActivity() {
                         ScreenState.GET_STARTED -> {
                             GetStartedScreen(
                                 onNavigateToCalculator = {
-                                    // Mark first launch complete so returning users go directly to Calculator
-                                    sharedPrefs.edit().putBoolean(KEY_FIRST_LAUNCH, false).apply()
-                                    currentScreen = ScreenState.CALCULATOR
+                                    coroutineScope.launch {
+                                        settingsRepository.setFirstLaunchComplete()
+                                    }
+                                    currentScreen = ScreenState.MAIN_APP
                                 }
                             )
                         }
-                        ScreenState.CALCULATOR -> {
-                            CalculatorScreen(
-                                onNavigateBack = {
+                        ScreenState.MAIN_APP -> {
+                            MainAppScaffold(
+                                sharedViewModel = sharedViewModel,
+                                settingsRepository = settingsRepository,
+                                onNavigateToGetStarted = {
                                     currentScreen = ScreenState.GET_STARTED
                                 }
                             )

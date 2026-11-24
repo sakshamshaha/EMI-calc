@@ -34,6 +34,8 @@ val SpaceGroteskFontFamily = FontFamily(
     )
 )
 
+val SpaceGroteskFamily = SpaceGroteskFontFamily
+
 // Inter for Body copy & descriptions with dynamic variable font weight axes
 @OptIn(ExperimentalTextApi::class)
 val InterFontFamily = FontFamily(
@@ -58,6 +60,8 @@ val InterFontFamily = FontFamily(
         variationSettings = FontVariation.Settings(FontVariation.weight(700))
     )
 )
+
+val InterFamily = InterFontFamily
 
 // Tabular figures feature string
 private const val TABULAR_NUMS = "'tnum'"

@@ -110,5 +110,14 @@ class EMIViewModelTest {
 
         val compact = EMIViewModel.formatCompactIndianLakh(4380000.0)
         assertEquals("₹43.8 L", compact)
+
+        val international = EMIViewModel.formatInternationalCurrency(4500000.0)
+        assertEquals("₹ 4,500,000", international)
+
+        val formatIndian = EMIViewModel.formatCurrency(4500000.0, com.example.emicalculatorapp.data.settings.NumberFormatStyle.INDIAN)
+        assertEquals("₹ 45,00,000", formatIndian)
+
+        val formatIntl = EMIViewModel.formatCurrency(4500000.0, com.example.emicalculatorapp.data.settings.NumberFormatStyle.INTERNATIONAL)
+        assertEquals("₹ 4,500,000", formatIntl)
     }
 }
