@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.example.emicalculatorapp.data.settings.NumberFormatStyle
 import com.example.emicalculatorapp.ui.components.fx.OdometerText
 import com.example.emicalculatorapp.ui.components.fx.SweepBorderCard
+import com.example.emicalculatorapp.ui.components.fx.TiltCard
 import com.example.emicalculatorapp.ui.theme.DonutInterestGradient
 import com.example.emicalculatorapp.ui.theme.DonutPrincipalGradient
 import com.example.emicalculatorapp.ui.theme.EMIverseTypography
@@ -62,17 +63,21 @@ fun HeroDonutCard(
     onSeeMathClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    SweepBorderCard(
-        modifier = modifier.fillMaxWidth(),
-        backgroundColor = SurfaceContainerLow.copy(alpha = 0.85f),
-        gradientColors = listOf(LuminousCyan, ElectricViolet, HotPink, LuminousCyan)
+    TiltCard(
+        enabled = !isAnySliderDragging,
+        modifier = modifier.fillMaxWidth()
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(18.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        SweepBorderCard(
+            modifier = Modifier.fillMaxWidth(),
+            backgroundColor = SurfaceContainerLow.copy(alpha = 0.85f),
+            gradientColors = listOf(LuminousCyan, ElectricViolet, HotPink, LuminousCyan)
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(18.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
             Box(
                 modifier = Modifier.size(220.dp),
                 contentAlignment = Alignment.Center
@@ -259,4 +264,5 @@ fun HeroDonutCard(
             }
         }
     }
+}
 }

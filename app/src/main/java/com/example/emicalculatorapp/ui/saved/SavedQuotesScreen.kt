@@ -21,7 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -49,8 +49,7 @@ import com.example.emicalculatorapp.data.database.QuoteEntity
 import com.example.emicalculatorapp.data.settings.NumberFormatStyle
 import com.example.emicalculatorapp.ui.components.AmbientBackground
 import com.example.emicalculatorapp.ui.components.GlassCard
-import com.example.emicalculatorapp.ui.components.fx.ShimmerBox
-import com.example.emicalculatorapp.ui.components.fx.ShineButton
+import com.example.emicalculatorapp.ui.components.fx.staggeredEntrance
 import com.example.emicalculatorapp.ui.theme.CanvasColor
 import com.example.emicalculatorapp.ui.theme.ElectricViolet
 import com.example.emicalculatorapp.ui.theme.InterFamily
@@ -162,7 +161,7 @@ fun SavedQuotesScreen(
                         contentPadding = PaddingValues(horizontal = 18.dp, vertical = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        items(quotes, key = { it.id }) { quote ->
+                        itemsIndexed(quotes, key = { _, it -> it.id }) { index, quote ->
                             val isSelected = selectedIds.contains(quote.id)
                             val selectionIndex = when {
                                 selectedIds.getOrNull(0) == quote.id -> 1
@@ -176,6 +175,7 @@ fun SavedQuotesScreen(
                                 isSelectionMode = selectedIds.isNotEmpty(),
                                 isSelected = isSelected,
                                 selectionIndex = selectionIndex,
+                                modifier = Modifier.staggeredEntrance(index),
                                 onQuoteClick = {
                                     if (selectedIds.isNotEmpty()) {
                                         savedQuotesState.toggleSelectQuote(quote.id)
@@ -231,94 +231,3 @@ fun SavedQuotesScreen(
     }
 }
 
-@Composable
-private fun SelectionActionBar(
-    selectedCount: Int,
-    canCompare: Boolean,
-    onCompare: () -> Unit,
-    onCancel: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 6.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(SurfaceContainerLowest.copy(alpha = 0.9f))
-            .border(1.dp, ElectricViolet.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
-            .padding(horizontal = 16.dp, vertical = 10.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onCancel, modifier = Modifier.size(28.dp)) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Cancel selection",
-                        tint = TextSecondary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "$selectedCount of 2 selected",
-                    fontFamily = SpaceGroteskFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp,
-                    color = TextPrimary
-                )
-            }
-
-            if (canCompare) {
-                ShineButton(
-                    text = "⇄ Compare A & B",
-                    onClick = onCompare,
-                    gradientBrush = Brush.horizontalGradient(listOf(ElectricViolet, LuminousCyan))
-                )
-            } else {
-                Text(
-                    text = "Select 1 more to compare",
-                    fontFamily = InterFamily,
-                    fontSize = 12.sp,
-                    color = TextSecondary
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun LoadingShimmerSkeleton() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        repeat(3) {
-            GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(18.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        ShimmerBox(modifier = Modifier.size(width = 140.dp, height = 18.dp))
-                        ShimmerBox(modifier = Modifier.size(width = 60.dp, height = 18.dp))
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        ShimmerBox(modifier = Modifier.size(width = 80.dp, height = 32.dp))
-                        ShimmerBox(modifier = Modifier.size(width = 90.dp, height = 32.dp))
-                        ShimmerBox(modifier = Modifier.size(width = 85.dp, height = 32.dp))
-                    }
-                }
-            }
-        }
-    }
-}

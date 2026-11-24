@@ -10,7 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
@@ -27,6 +27,7 @@ import com.example.emicalculatorapp.ui.theme.SurfaceContainerHigh
 /**
  * Sweeping shimmer skeleton loading placeholder.
  * Rebuilt natively from Uiverse.io skeleton/shimmer patterns.
+ * Reads animated progress lazily inside onDrawWithContent to prevent recompositions.
  */
 @Composable
 fun ShimmerBox(
@@ -39,9 +40,9 @@ fun ShimmerBox(
     val reduceMotion = LocalReduceMotion.current
     val shouldAnimate = !reduceMotion && effectsLevel != EffectsLevel.LITE
 
-    val shimmerProgress = if (shouldAnimate) {
+    val progressState: State<Float>? = if (shouldAnimate) {
         val infiniteTransition = rememberInfiniteTransition(label = "ShimmerTransition")
-        val progress by infiniteTransition.animateFloat(
+        infiniteTransition.animateFloat(
             initialValue = -1f,
             targetValue = 2f,
             animationSpec = infiniteRepeatable(
@@ -50,10 +51,7 @@ fun ShimmerBox(
             ),
             label = "ShimmerProgress"
         )
-        progress
-    } else {
-        0f
-    }
+    } else null
 
     Box(
         modifier = modifier
@@ -63,20 +61,17 @@ fun ShimmerBox(
                 val width = size.width
                 val height = size.height
 
-                val brush = if (shouldAnimate) {
-                    val currentX = width * shimmerProgress
-                    Brush.linearGradient(
-                        colors = listOf(baseColor, highlightColor, baseColor),
-                        start = Offset(currentX - 100f, 0f),
-                        end = Offset(currentX + 100f, height)
-                    )
-                } else {
-                    Brush.linearGradient(listOf(baseColor, baseColor))
-                }
-
                 onDrawWithContent {
                     drawContent()
-                    drawRect(brush = brush)
+                    if (shouldAnimate && progressState != null) {
+                        val currentX = width * progressState.value
+                        val brush = Brush.linearGradient(
+                            colors = listOf(baseColor, highlightColor, baseColor),
+                            start = Offset(currentX - 100f, 0f),
+                            end = Offset(currentX + 100f, height)
+                        )
+                        drawRect(brush = brush)
+                    }
                 }
             }
     )

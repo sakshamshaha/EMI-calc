@@ -3,11 +3,14 @@ package com.example.emicalculatorapp.ui.navigation
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.emicalculatorapp.data.settings.EffectsLevel
 import com.example.emicalculatorapp.model.QuoteCalculations
 import com.example.emicalculatorapp.ui.affordability.AffordabilityScreen
 import com.example.emicalculatorapp.ui.calculator.CalculatorScreen
@@ -16,11 +19,21 @@ import com.example.emicalculatorapp.ui.help.HelpCenterScreen
 import com.example.emicalculatorapp.ui.report.ReportProblemScreen
 import com.example.emicalculatorapp.ui.saved.SavedQuotesScreen
 import com.example.emicalculatorapp.ui.schedule.ScheduleScreen
+import com.example.emicalculatorapp.ui.theme.LocalEffectsLevel
 import com.example.emicalculatorapp.ui.tools.PrepaymentScreen
 import com.example.emicalculatorapp.ui.tools.ToolsHubScreen
 import com.example.emicalculatorapp.viewmodel.EMIViewModel
 import com.example.emicalculatorapp.viewmodel.ReportsState
 import com.example.emicalculatorapp.viewmodel.SavedQuotesState
+
+private fun getNavTabIndex(route: String?): Int? = when (route) {
+    NavDestination.Calculate.route -> 0
+    NavDestination.Schedule.route -> 1
+    NavDestination.Compare.route -> 2
+    NavDestination.Tools.route -> 3
+    NavDestination.Saved.route -> 4
+    else -> null
+}
 
 @Composable
 fun AppNavGraph(
@@ -32,16 +45,79 @@ fun AppNavGraph(
     reduceMotion: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val effectsLevel = LocalEffectsLevel.current
+    val isLiteOrReduced = reduceMotion || effectsLevel == EffectsLevel.LITE
+
     NavHost(
         navController = navController,
         startDestination = NavDestination.Calculate.route,
         enterTransition = {
-            if (reduceMotion) fadeIn(tween(0))
-            else fadeIn(tween(250))
+            if (isLiteOrReduced) {
+                fadeIn(tween(150))
+            } else {
+                val fromIdx = getNavTabIndex(initialState.destination.route)
+                val toIdx = getNavTabIndex(targetState.destination.route)
+                if (fromIdx != null && toIdx != null) {
+                    if (toIdx > fromIdx) {
+                        slideInHorizontally(tween(250)) { it / 3 } + fadeIn(tween(250))
+                    } else {
+                        slideInHorizontally(tween(250)) { -it / 3 } + fadeIn(tween(250))
+                    }
+                } else {
+                    slideInHorizontally(tween(250)) { it } + fadeIn(tween(250))
+                }
+            }
         },
         exitTransition = {
-            if (reduceMotion) fadeOut(tween(0))
-            else fadeOut(tween(200))
+            if (isLiteOrReduced) {
+                fadeOut(tween(150))
+            } else {
+                val fromIdx = getNavTabIndex(initialState.destination.route)
+                val toIdx = getNavTabIndex(targetState.destination.route)
+                if (fromIdx != null && toIdx != null) {
+                    if (toIdx > fromIdx) {
+                        slideOutHorizontally(tween(250)) { -it / 3 } + fadeOut(tween(200))
+                    } else {
+                        slideOutHorizontally(tween(250)) { it / 3 } + fadeOut(tween(200))
+                    }
+                } else {
+                    slideOutHorizontally(tween(250)) { -it / 4 } + fadeOut(tween(200))
+                }
+            }
+        },
+        popEnterTransition = {
+            if (isLiteOrReduced) {
+                fadeIn(tween(150))
+            } else {
+                val fromIdx = getNavTabIndex(initialState.destination.route)
+                val toIdx = getNavTabIndex(targetState.destination.route)
+                if (fromIdx != null && toIdx != null) {
+                    if (toIdx > fromIdx) {
+                        slideInHorizontally(tween(250)) { it / 3 } + fadeIn(tween(250))
+                    } else {
+                        slideInHorizontally(tween(250)) { -it / 3 } + fadeIn(tween(250))
+                    }
+                } else {
+                    slideInHorizontally(tween(250)) { -it / 4 } + fadeIn(tween(250))
+                }
+            }
+        },
+        popExitTransition = {
+            if (isLiteOrReduced) {
+                fadeOut(tween(150))
+            } else {
+                val fromIdx = getNavTabIndex(initialState.destination.route)
+                val toIdx = getNavTabIndex(targetState.destination.route)
+                if (fromIdx != null && toIdx != null) {
+                    if (toIdx > fromIdx) {
+                        slideOutHorizontally(tween(250)) { -it / 3 } + fadeOut(tween(200))
+                    } else {
+                        slideOutHorizontally(tween(250)) { it / 3 } + fadeOut(tween(200))
+                    }
+                } else {
+                    slideOutHorizontally(tween(250)) { it } + fadeOut(tween(200))
+                }
+            }
         },
         modifier = modifier
     ) {

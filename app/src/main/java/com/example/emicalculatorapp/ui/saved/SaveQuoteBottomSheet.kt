@@ -47,6 +47,7 @@ import com.example.emicalculatorapp.data.settings.NumberFormatStyle
 import com.example.emicalculatorapp.model.LoanCategory
 import com.example.emicalculatorapp.model.QuoteCalculations
 import com.example.emicalculatorapp.ui.components.ConfettiBurst
+import com.example.emicalculatorapp.ui.components.fx.AnimatedLoanCategoryIcon
 import com.example.emicalculatorapp.ui.components.fx.PathCheckmark
 import com.example.emicalculatorapp.ui.components.fx.ShineButton
 import com.example.emicalculatorapp.ui.theme.CanvasColor
@@ -110,47 +111,13 @@ fun SaveQuoteBottomSheet(
                 .padding(horizontal = 20.dp, vertical = 22.dp)
         ) {
             if (isSavingSuccess) {
-                // Success Celebratory State
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 36.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    PathCheckmark(
-                        size = 64.dp,
-                        color = MintGreen,
-                        strokeWidth = 5.dp
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Quote Saved Successfully!",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = TextPrimary
-                    )
-
-                    Text(
-                        text = quoteName.trim(),
-                        fontFamily = InterFamily,
-                        fontSize = 13.sp,
-                        color = TextSecondary,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
-
-                // Confetti overlay
-                if (!reduceMotion && effectsLevel != EffectsLevel.LITE) {
-                    ConfettiBurst(
-                        trigger = showConfetti,
-                        onComplete = { showConfetti = false },
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
+                SaveQuoteSuccessView(
+                    quoteName = quoteName,
+                    showConfetti = showConfetti,
+                    onConfettiComplete = { showConfetti = false },
+                    effectsLevel = effectsLevel,
+                    reduceMotion = reduceMotion
+                )
             } else {
                 // Input Form State
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -229,13 +196,25 @@ fun SaveQuoteBottomSheet(
                             }
                             Column {
                                 Text(text = "Category", fontFamily = InterFamily, fontSize = 11.sp, color = TextMuted)
-                                Text(
-                                    text = "${category.title} Loan",
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 13.sp,
-                                    color = LuminousCyan
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                ) {
+                                    AnimatedLoanCategoryIcon(
+                                        category = category,
+                                        isSelected = true,
+                                        size = 14.dp,
+                                        tint = LuminousCyan
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "${category.title} Loan",
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 13.sp,
+                                        color = LuminousCyan
+                                    )
+                                }
                             }
                         }
                     }

@@ -32,7 +32,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
+import com.example.emicalculatorapp.ui.components.fx.AnimatedLoanCategoryIcon
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -63,25 +64,25 @@ fun LoanCategoryPills(
     ) {
         CategoryPill(
             title = "Home",
-            icon = Icons.Default.Home,
+            category = LoanCategory.HOME,
             isSelected = selectedCategory == LoanCategory.HOME,
             onClick = { onCategorySelected(LoanCategory.HOME) }
         )
         CategoryPill(
             title = "Car",
-            icon = Icons.Default.DirectionsCar,
+            category = LoanCategory.CAR,
             isSelected = selectedCategory == LoanCategory.CAR,
             onClick = { onCategorySelected(LoanCategory.CAR) }
         )
         CategoryPill(
             title = "Personal",
-            icon = Icons.Default.Work,
+            category = LoanCategory.PERSONAL,
             isSelected = selectedCategory == LoanCategory.PERSONAL,
             onClick = { onCategorySelected(LoanCategory.PERSONAL) }
         )
         CategoryPill(
             title = "Education",
-            icon = Icons.Default.School,
+            category = LoanCategory.EDUCATION,
             isSelected = selectedCategory == LoanCategory.EDUCATION,
             onClick = { onCategorySelected(LoanCategory.EDUCATION) }
         )
@@ -91,7 +92,7 @@ fun LoanCategoryPills(
 @Composable
 fun CategoryPill(
     title: String,
-    icon: ImageVector,
+    category: LoanCategory,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -115,7 +116,10 @@ fun CategoryPill(
 
     Row(
         modifier = Modifier
-            .scale(scale)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .then(
                 if (isSelected) {
                     Modifier.drawBehind {
@@ -150,11 +154,11 @@ fun CategoryPill(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = title,
-            tint = if (isSelected) Color.White else TextSecondary,
-            modifier = Modifier.size(18.dp)
+        AnimatedLoanCategoryIcon(
+            category = category,
+            isSelected = isSelected,
+            size = 18.dp,
+            tint = if (isSelected) Color.White else TextSecondary
         )
         Text(
             text = title,

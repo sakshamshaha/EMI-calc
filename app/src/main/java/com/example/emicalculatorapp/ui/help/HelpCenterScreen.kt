@@ -44,7 +44,9 @@ import androidx.compose.ui.unit.sp
 import com.example.emicalculatorapp.model.faq.FaqRepository
 import com.example.emicalculatorapp.model.faq.FaqSearch
 import com.example.emicalculatorapp.ui.components.AmbientBackground
+import com.example.emicalculatorapp.ui.components.fx.ShimmerText
 import com.example.emicalculatorapp.ui.components.fx.ShineButton
+import com.example.emicalculatorapp.ui.components.fx.staggeredEntrance
 import com.example.emicalculatorapp.ui.theme.CanvasColor
 import com.example.emicalculatorapp.ui.theme.ElectricViolet
 import com.example.emicalculatorapp.ui.theme.HotPink
@@ -74,7 +76,7 @@ fun HelpCenterScreen(
     val scrollState = rememberScrollState()
 
     Box(modifier = modifier.fillMaxSize().background(CanvasColor)) {
-        AmbientBackground()
+        AmbientBackground(scrollOffset = scrollState.value.toFloat())
 
         Column(
             modifier = Modifier
@@ -106,12 +108,12 @@ fun HelpCenterScreen(
                 }
 
                 Column(modifier = Modifier.padding(start = 14.dp)) {
-                    Text(
+                    ShimmerText(
                         text = "Help & Support",
                         fontFamily = SpaceGroteskFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = TextPrimary
+                        baseColor = TextPrimary
                     )
                     Text(
                         text = "Documentation, financial formulas & FAQs",
@@ -196,8 +198,11 @@ fun HelpCenterScreen(
                 HelpCenterEmptyState(query = searchQuery)
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    filteredFaqs.forEach { faq ->
-                        FaqAccordionCard(item = faq)
+                    filteredFaqs.forEachIndexed { index, faq ->
+                        FaqAccordionCard(
+                            item = faq,
+                            modifier = Modifier.staggeredEntrance(index)
+                        )
                     }
                 }
             }

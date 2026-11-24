@@ -31,12 +31,15 @@ import com.example.emicalculatorapp.ui.theme.LocalReduceMotion
 import com.example.emicalculatorapp.ui.theme.LuminousCyan
 import com.example.emicalculatorapp.ui.theme.SurfaceColor
 
+import androidx.compose.ui.graphics.drawscope.rotate
+
 /**
  * Cyber-luxe card with a rotating sweep gradient perimeter beam.
  * Rebuilt natively from Uiverse.io border beam patterns.
  * Respects LocalEffectsLevel and LocalReduceMotion:
  * - LITE / ReduceMotion: Static subtle border.
  * - BALANCED / FULL: Silky rotating laser beam.
+ * Reads animated angle lazily inside onDrawWithContent to avoid recompositions.
  */
 @Composable
 fun SweepBorderCard(
@@ -57,9 +60,9 @@ fun SweepBorderCard(
     val reduceMotion = LocalReduceMotion.current
     val shouldAnimate = !reduceMotion && effectsLevel != EffectsLevel.LITE
 
-    val angle = if (shouldAnimate) {
+    val animatedAngleState = if (shouldAnimate) {
         val infiniteTransition = rememberInfiniteTransition(label = "SweepBorderInfinite")
-        val animatedAngle by infiniteTransition.animateFloat(
+        infiniteTransition.animateFloat(
             initialValue = 0f,
             targetValue = 360f,
             animationSpec = infiniteRepeatable(
@@ -68,19 +71,14 @@ fun SweepBorderCard(
             ),
             label = "SweepBorderAngle"
         )
-        animatedAngle
-    } else {
-        45f
-    }
+    } else null
 
     Box(
         modifier = modifier
             .drawWithCache {
                 val strokePx = borderWidth.toPx()
                 val sweepBrush = if (shouldAnimate) {
-                    Brush.sweepGradient(
-                        colors = gradientColors
-                    )
+                    Brush.sweepGradient(colors = gradientColors)
                 } else {
                     Brush.linearGradient(
                         colors = listOf(
@@ -92,15 +90,18 @@ fun SweepBorderCard(
 
                 onDrawWithContent {
                     drawContent()
-                    // Draw outer border stroke
-                    drawRoundRect(
-                        brush = sweepBrush,
-                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(
-                            20.dp.toPx(),
-                            20.dp.toPx()
-                        ),
-                        style = Stroke(width = strokePx, cap = StrokeCap.Round)
-                    )
+                    val currentAngle = animatedAngleState?.value ?: 45f
+                    // Draw outer rotating border stroke
+                    rotate(currentAngle) {
+                        drawRoundRect(
+                            brush = sweepBrush,
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(
+                                20.dp.toPx(),
+                                20.dp.toPx()
+                            ),
+                            style = Stroke(width = strokePx, cap = StrokeCap.Round)
+                        )
+                    }
                 }
             }
             .clip(shape)

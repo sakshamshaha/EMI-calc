@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.emicalculatorapp.ui.components.fx.ShimmerText
 import com.example.emicalculatorapp.ui.theme.ElectricViolet
 import com.example.emicalculatorapp.ui.theme.LuminousCyan
 import com.example.emicalculatorapp.ui.theme.SpaceGroteskFamily
@@ -52,12 +53,12 @@ fun AppTopBar(
                         Brush.linearGradient(listOf(LuminousCyan, ElectricViolet))
                     )
             )
-            Text(
+            ShimmerText(
                 text = "EMIverse",
                 fontFamily = SpaceGroteskFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                color = TextPrimary,
+                baseColor = TextPrimary,
                 modifier = Modifier.padding(start = 8.dp)
             )
         }

@@ -96,9 +96,6 @@ fun MainAppScaffold(
     }
 
     Box(modifier = modifier.fillMaxSize().background(CanvasColor)) {
-        // Shared luminous ambient background
-        AmbientBackground()
-
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {

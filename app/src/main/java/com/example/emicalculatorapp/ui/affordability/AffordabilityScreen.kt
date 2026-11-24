@@ -72,7 +72,7 @@ fun AffordabilityScreen(
             .fillMaxSize()
             .imePadding()
     ) {
-        AmbientBackground()
+        AmbientBackground(scrollOffset = scrollState.value.toFloat())
 
         Column(
             modifier = Modifier

@@ -37,7 +37,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.emicalculatorapp.ui.components.AmbientBackground
 import com.example.emicalculatorapp.ui.components.GlassCard
+import com.example.emicalculatorapp.ui.components.fx.ShimmerText
+import com.example.emicalculatorapp.ui.components.fx.pressScale
+import com.example.emicalculatorapp.ui.components.fx.staggeredEntrance
 import com.example.emicalculatorapp.ui.theme.CanvasColor
 import com.example.emicalculatorapp.ui.theme.ElectricViolet
 import com.example.emicalculatorapp.ui.theme.HotPink
@@ -62,103 +66,115 @@ fun ToolsHubScreen(
 ) {
     val scrollState = rememberScrollState()
 
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
             .background(CanvasColor)
-            .padding(horizontal = 20.dp)
-            .verticalScroll(scrollState)
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        AmbientBackground(scrollOffset = scrollState.value.toFloat())
 
-        Text(
-            text = "Financial Tools Hub",
-            fontFamily = SpaceGroteskFamily,
-            fontWeight = FontWeight.Bold,
-            fontSize = 24.sp,
-            color = TextPrimary
-        )
-        Text(
-            text = "Advanced simulation modules, affordability checks & support",
-            fontFamily = InterFamily,
-            fontSize = 13.sp,
-            color = TextSecondary,
-            modifier = Modifier.padding(top = 4.dp, bottom = 18.dp)
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp)
+                .verticalScroll(scrollState)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // 1. Prepayment Simulator (Phase 3: Active)
-        ToolHubCard(
-            title = "Prepayment & Debt-Free Simulator",
-            description = "Simulate extra monthly contributions, lump-sum prepayments, and annual step-up % to see how many years and lakhs of interest you cut off.",
-            icon = Icons.Default.Speed,
-            iconTint = MintGreen,
-            statusBadge = "LIVE NOW",
-            badgeColor = MintGreen,
-            onClick = onNavigateToPrepayment
-        )
+            ShimmerText(
+                text = "Financial Tools Hub",
+                fontFamily = SpaceGroteskFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp,
+                baseColor = TextPrimary
+            )
+            Text(
+                text = "Advanced simulation modules, affordability checks & support",
+                fontFamily = InterFamily,
+                fontSize = 13.sp,
+                color = TextSecondary,
+                modifier = Modifier.padding(top = 4.dp, bottom = 18.dp)
+            )
 
-        Spacer(modifier = Modifier.height(14.dp))
+            // 1. Prepayment Simulator (Phase 3: Active)
+            ToolHubCard(
+                title = "Prepayment & Debt-Free Simulator",
+                description = "Simulate extra monthly contributions, lump-sum prepayments, and annual step-up % to see how many years and lakhs of interest you cut off.",
+                icon = Icons.Default.Speed,
+                iconTint = MintGreen,
+                statusBadge = "LIVE NOW",
+                badgeColor = MintGreen,
+                index = 0,
+                onClick = onNavigateToPrepayment
+            )
 
-        // 2. Affordability Calculator
-        ToolHubCard(
-            title = "Borrowing Power & Affordability",
-            description = "180° visual gauge evaluating your max comfortable loan based on monthly net income and debt-to-income (DTI) ratio.",
-            icon = Icons.Default.AccountBalance,
-            iconTint = MintGreen,
-            statusBadge = "LIVE NOW",
-            badgeColor = MintGreen,
-            onClick = onNavigateToAffordability
-        )
+            Spacer(modifier = Modifier.height(14.dp))
 
-        Spacer(modifier = Modifier.height(14.dp))
+            // 2. Affordability Calculator
+            ToolHubCard(
+                title = "Borrowing Power & Affordability",
+                description = "180° visual gauge evaluating your max comfortable loan based on monthly net income and debt-to-income (DTI) ratio.",
+                icon = Icons.Default.AccountBalance,
+                iconTint = MintGreen,
+                statusBadge = "LIVE NOW",
+                badgeColor = MintGreen,
+                index = 1,
+                onClick = onNavigateToAffordability
+            )
 
-        // 3. Smart Rate Sensitivity Strip
-        ToolHubCard(
-            title = "Rate Sensitivity & 'See the Math'",
-            description = "Dynamic rate delta matrices and mathematical breakdown of reducing balance formulas directly on the Calculate tab.",
-            icon = Icons.Default.AutoAwesome,
-            iconTint = MintGreen,
-            statusBadge = "LIVE NOW",
-            badgeColor = MintGreen
-        )
+            Spacer(modifier = Modifier.height(14.dp))
 
-        Spacer(modifier = Modifier.height(14.dp))
+            // 3. Smart Rate Sensitivity Strip
+            ToolHubCard(
+                title = "Rate Sensitivity & 'See the Math'",
+                description = "Dynamic rate delta matrices and mathematical breakdown of reducing balance formulas directly on the Calculate tab.",
+                icon = Icons.Default.AutoAwesome,
+                iconTint = MintGreen,
+                statusBadge = "LIVE NOW",
+                badgeColor = MintGreen,
+                index = 2
+            )
 
-        // 4. Help Center & FAQ
-        ToolHubCard(
-            title = "Help Center & FAQ",
-            description = "Searchable loan questions, terminology breakdown, and financial literacy guides.",
-            icon = Icons.AutoMirrored.Filled.HelpOutline,
-            iconTint = LuminousCyan,
-            statusBadge = "LIVE NOW",
-            badgeColor = MintGreen,
-            onClick = onNavigateToHelpCenter
-        )
+            Spacer(modifier = Modifier.height(14.dp))
 
-        Spacer(modifier = Modifier.height(14.dp))
+            // 4. Help Center & FAQ
+            ToolHubCard(
+                title = "Help Center & FAQ",
+                description = "Searchable loan questions, terminology breakdown, and financial literacy guides.",
+                icon = Icons.AutoMirrored.Filled.HelpOutline,
+                iconTint = LuminousCyan,
+                statusBadge = "LIVE NOW",
+                badgeColor = MintGreen,
+                index = 3,
+                onClick = onNavigateToHelpCenter
+            )
 
-        // 5. Report a Problem
-        ToolHubCard(
-            title = "Report a Problem & Diagnostics",
-            description = "Attach screenshot diagnostics, preview prefilled feedback emails, and save report history.",
-            icon = Icons.Default.ReportProblem,
-            iconTint = HotPink,
-            statusBadge = "LIVE NOW",
-            badgeColor = MintGreen,
-            onClick = onNavigateToReportProblem
-        )
+            Spacer(modifier = Modifier.height(14.dp))
 
-        Spacer(modifier = Modifier.height(28.dp))
+            // 5. Report a Problem
+            ToolHubCard(
+                title = "Report a Problem & Diagnostics",
+                description = "Attach screenshot diagnostics, preview prefilled feedback emails, and save report history.",
+                icon = Icons.Default.ReportProblem,
+                iconTint = HotPink,
+                statusBadge = "LIVE NOW",
+                badgeColor = MintGreen,
+                index = 4,
+                onClick = onNavigateToReportProblem
+            )
 
-        Text(
-            text = "Estimates only, not financial advice.",
-            fontFamily = InterFamily,
-            fontSize = 11.sp,
-            color = TextSecondary.copy(alpha = 0.6f),
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+            Spacer(modifier = Modifier.height(28.dp))
 
-        Spacer(modifier = Modifier.height(100.dp))
+            Text(
+                text = "Estimates only, not financial advice.",
+                fontFamily = InterFamily,
+                fontSize = 11.sp,
+                color = TextSecondary.copy(alpha = 0.6f),
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+
+            Spacer(modifier = Modifier.height(100.dp))
+        }
     }
 }
 
@@ -170,11 +186,14 @@ private fun ToolHubCard(
     iconTint: Color,
     statusBadge: String,
     badgeColor: Color = TextSecondary,
+    index: Int = 0,
     onClick: (() -> Unit)? = null
 ) {
     GlassCard(
         modifier = Modifier
             .fillMaxWidth()
+            .staggeredEntrance(index)
+            .pressScale()
             .then(
                 if (onClick != null) {
                     Modifier

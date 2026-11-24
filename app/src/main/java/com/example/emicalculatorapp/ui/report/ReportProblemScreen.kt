@@ -72,6 +72,7 @@ fun ReportProblemScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scrollState = rememberScrollState()
 
     val category by reportsState.category.collectAsStateWithLifecycle()
     val description by reportsState.description.collectAsStateWithLifecycle()
@@ -151,13 +152,13 @@ fun ReportProblemScreen(
         modifier = modifier.fillMaxSize()
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            AmbientBackground()
+            AmbientBackground(scrollOffset = scrollState.value.toFloat())
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .statusBarsPadding()
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(scrollState)
                     .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
                 // Top Header Row

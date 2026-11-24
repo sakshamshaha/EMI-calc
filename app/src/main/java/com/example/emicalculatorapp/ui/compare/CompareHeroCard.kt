@@ -39,6 +39,7 @@ import com.example.emicalculatorapp.model.LoanComparisonResult
 import com.example.emicalculatorapp.ui.components.GlassCard
 import com.example.emicalculatorapp.ui.components.fx.OdometerText
 import com.example.emicalculatorapp.ui.components.fx.SweepBorderCard
+import com.example.emicalculatorapp.ui.components.fx.TiltCard
 import com.example.emicalculatorapp.ui.theme.ElectricViolet
 import com.example.emicalculatorapp.ui.theme.HotPink
 import com.example.emicalculatorapp.ui.theme.InterFamily
@@ -226,11 +227,16 @@ fun CompareHeroCard(
     }
 
     if (hasWinner) {
-        SweepBorderCard(
-            modifier = modifier.fillMaxWidth(),
-            gradientColors = listOf(winnerColor, ElectricViolet, HotPink, winnerColor)
+        TiltCard(
+            enabled = true,
+            modifier = modifier.fillMaxWidth()
         ) {
-            content()
+            SweepBorderCard(
+                modifier = Modifier.fillMaxWidth(),
+                gradientColors = listOf(winnerColor, ElectricViolet, HotPink, winnerColor)
+            ) {
+                content()
+            }
         }
     } else {
         GlassCard(modifier = modifier.fillMaxWidth()) {

@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,9 +36,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.emicalculatorapp.data.settings.EffectsLevel
 import com.example.emicalculatorapp.ui.components.AmbientBackground
+import com.example.emicalculatorapp.ui.components.ConfettiBurst
+import com.example.emicalculatorapp.ui.components.fx.CelebrationThresholdTracker
 import com.example.emicalculatorapp.ui.components.fx.ShineButton
+import com.example.emicalculatorapp.ui.theme.LocalEffectsLevel
 import com.example.emicalculatorapp.ui.theme.LocalNumberFormat
+import com.example.emicalculatorapp.ui.theme.LocalReduceMotion
 import com.example.emicalculatorapp.ui.theme.MintGreen
 import com.example.emicalculatorapp.ui.theme.SpaceGroteskFamily
 import com.example.emicalculatorapp.ui.theme.SurfaceBright
@@ -69,12 +75,23 @@ fun PrepaymentScreen(
 
     val totalMonths = if (isYearMode) tenureValue * 12 else tenureValue
 
+    val celebrationTracker = remember { CelebrationThresholdTracker(threshold = 60) }
+    var showConfetti by remember { mutableStateOf(false) }
+    val reduceMotion = LocalReduceMotion.current
+    val effectsLevel = LocalEffectsLevel.current
+
+    LaunchedEffect(result.monthsSaved) {
+        if (!reduceMotion && effectsLevel != EffectsLevel.LITE && celebrationTracker.update(result.monthsSaved)) {
+            showConfetti = true
+        }
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .imePadding()
     ) {
-        AmbientBackground()
+        AmbientBackground(scrollOffset = scrollState.value.toFloat())
 
         Column(
             modifier = Modifier
@@ -164,6 +181,14 @@ fun PrepaymentScreen(
                     .fillMaxWidth()
                     .padding(bottom = 100.dp),
                 gradientBrush = Brush.horizontalGradient(listOf(SurfaceContainerHigh, SurfaceBright))
+            )
+        }
+
+        if (showConfetti) {
+            ConfettiBurst(
+                trigger = true,
+                onComplete = { showConfetti = false },
+                modifier = Modifier.align(Alignment.Center)
             )
         }
     }
