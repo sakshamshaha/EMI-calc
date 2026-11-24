@@ -151,6 +151,7 @@ fun PrepaymentScreen(
                 onLumpSumEnabledChanged = { viewModel.setLumpSumEnabled(it) },
                 onStepUpPercentChanged = { viewModel.setStepUpPercent(it) },
                 onStepUpEnabledChanged = { viewModel.setStepUpEnabled(it) },
+                onStepUpModeChanged = { viewModel.setStepUpMode(it) },
                 onDraggingChanged = { isDraggingSlider = it },
                 focusManager = focusManager
             )

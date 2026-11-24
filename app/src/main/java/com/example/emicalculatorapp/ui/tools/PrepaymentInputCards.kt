@@ -9,6 +9,7 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.unit.dp
 import com.example.emicalculatorapp.data.settings.NumberFormatStyle
 import com.example.emicalculatorapp.model.PrepaymentParams
+import com.example.emicalculatorapp.model.StepUpMode
 
 @Composable
 fun PrepaymentInputCards(
@@ -21,6 +22,7 @@ fun PrepaymentInputCards(
     onLumpSumEnabledChanged: (Boolean) -> Unit,
     onStepUpPercentChanged: (Double) -> Unit,
     onStepUpEnabledChanged: (Boolean) -> Unit,
+    onStepUpModeChanged: (StepUpMode) -> Unit,
     onDraggingChanged: (Boolean) -> Unit,
     focusManager: FocusManager,
     modifier: Modifier = Modifier
@@ -55,8 +57,10 @@ fun PrepaymentInputCards(
         PrepaymentStepUpCard(
             isStepUpEnabled = params.isStepUpEnabled,
             stepUpPercent = params.stepUpPercent,
+            stepUpMode = params.stepUpMode,
             onStepUpEnabledChanged = onStepUpEnabledChanged,
             onStepUpPercentChanged = onStepUpPercentChanged,
+            onStepUpModeChanged = onStepUpModeChanged,
             onDraggingChanged = onDraggingChanged
         )
     }

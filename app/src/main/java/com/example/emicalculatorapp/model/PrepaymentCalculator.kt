@@ -81,8 +81,10 @@ object PrepaymentCalculator {
             }
 
             val extraMonthly = if (params.extraMonthly > 0.0) params.extraMonthly else 0.0
-            // When step-up is enabled, annual increase applies to base EMI (or base EMI + extra)
-            val curEmi = (baseEMI * stepFactor) + extraMonthly
+            val curEmi = when (params.stepUpMode) {
+                StepUpMode.EXTRA_PAYMENT -> baseEMI + (extraMonthly * stepFactor)
+                StepUpMode.WHOLE_EMI -> (baseEMI + extraMonthly) * stepFactor
+            }
 
             val curLump = if (
                 params.isLumpSumEnabled &&

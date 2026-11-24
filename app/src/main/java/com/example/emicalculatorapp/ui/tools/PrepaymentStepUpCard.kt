@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.emicalculatorapp.model.StepUpMode
 import com.example.emicalculatorapp.ui.components.NeonChip
 import com.example.emicalculatorapp.ui.components.QuantumSlider
 import com.example.emicalculatorapp.ui.components.fx.GlowPillSwitch
@@ -33,14 +34,17 @@ import com.example.emicalculatorapp.ui.theme.InterFamily
 import com.example.emicalculatorapp.ui.theme.MintGreen
 import com.example.emicalculatorapp.ui.theme.SpaceGroteskFamily
 import com.example.emicalculatorapp.ui.theme.TextMuted
+import com.example.emicalculatorapp.ui.theme.TextSecondary
 import java.util.Locale
 
 @Composable
 fun PrepaymentStepUpCard(
     isStepUpEnabled: Boolean,
     stepUpPercent: Double,
+    stepUpMode: StepUpMode,
     onStepUpEnabledChanged: (Boolean) -> Unit,
     onStepUpPercentChanged: (Double) -> Unit,
+    onStepUpModeChanged: (StepUpMode) -> Unit,
     onDraggingChanged: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -115,6 +119,40 @@ fun PrepaymentStepUpCard(
                     activeGradient = Brush.horizontalGradient(listOf(ElectricViolet, MintGreen)),
                     ringColor = ElectricViolet,
                     onDraggingChanged = onDraggingChanged
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Text(
+                    text = "Step-up applies to:",
+                    fontFamily = SpaceGroteskFamily,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextSecondary
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                GlowPillSwitch(
+                    options = listOf(StepUpMode.EXTRA_PAYMENT, StepUpMode.WHOLE_EMI),
+                    selectedOption = stepUpMode,
+                    onOptionSelected = onStepUpModeChanged,
+                    labelProvider = { if (it == StepUpMode.EXTRA_PAYMENT) "Extra payment" else "Whole EMI" },
+                    modifier = Modifier.fillMaxWidth().height(36.dp)
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = if (stepUpMode == StepUpMode.EXTRA_PAYMENT) {
+                        "Extra payment mode: month payment = EMI + extra × (1 + step%)^(year-1)."
+                    } else {
+                        "Whole EMI mode: month payment = (EMI + extra) × (1 + step%)^(year-1)."
+                    },
+                    fontFamily = InterFamily,
+                    fontSize = 11.sp,
+                    color = TextMuted,
+                    lineHeight = 15.sp
                 )
             }
         }

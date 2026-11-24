@@ -2,6 +2,11 @@ package com.example.emicalculatorapp.model
 
 import androidx.compose.runtime.Immutable
 
+enum class StepUpMode {
+    EXTRA_PAYMENT,
+    WHOLE_EMI
+}
+
 @Immutable
 data class PrepaymentParams(
     val extraMonthly: Double = 0.0,
@@ -9,7 +14,8 @@ data class PrepaymentParams(
     val lumpSumMonth: Int = 12,
     val isLumpSumEnabled: Boolean = false,
     val stepUpPercent: Double = 0.0,
-    val isStepUpEnabled: Boolean = false
+    val isStepUpEnabled: Boolean = false,
+    val stepUpMode: StepUpMode = StepUpMode.EXTRA_PAYMENT
 )
 
 @Immutable

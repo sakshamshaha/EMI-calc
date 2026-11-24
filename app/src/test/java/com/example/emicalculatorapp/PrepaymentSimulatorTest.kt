@@ -2,6 +2,8 @@ package com.example.emicalculatorapp
 
 import com.example.emicalculatorapp.model.PrepaymentCalculator
 import com.example.emicalculatorapp.model.PrepaymentParams
+import com.example.emicalculatorapp.model.StepUpMode
+import com.example.emicalculatorapp.viewmodel.EMIViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -66,7 +68,8 @@ class PrepaymentSimulatorTest {
             isYears = true,
             params = PrepaymentParams(
                 stepUpPercent = 10.0,
-                isStepUpEnabled = true
+                isStepUpEnabled = true,
+                stepUpMode = StepUpMode.WHOLE_EMI
             )
         )
 
@@ -168,5 +171,100 @@ class PrepaymentSimulatorTest {
         assertEquals(0.0, result.interestSaved, 0.001)
         assertEquals(result.originalTotalInterest, result.newTotalInterest, 0.001)
         assertEquals(result.originalTotalPayment, result.newTotalPayment, 0.001)
+    }
+
+    @Test
+    fun testHomeLoanExtra2000With10PercentStepUpOnExtra() {
+        // Home Rs 45,00,000 at 8.55% for 20 years, extra Rs 2,000/month with 10% step-up on the extra:
+        // 193 months, total interest 3,928,819.13, interest saved 977,877.24.
+        val result = PrepaymentCalculator.calculatePrepaymentSimulation(
+            principal = 4500000.0,
+            annualRate = 8.55,
+            tenure = 20,
+            isYears = true,
+            params = PrepaymentParams(
+                extraMonthly = 2000.0,
+                stepUpPercent = 10.0,
+                isStepUpEnabled = true,
+                stepUpMode = StepUpMode.EXTRA_PAYMENT
+            )
+        )
+
+        assertEquals(193, result.newMonths)
+        assertEquals(3928819.13, result.newTotalInterest, 1.0)
+        assertEquals(977877.24, result.interestSaved, 1.0)
+    }
+
+    @Test
+    fun testCarLoanExtra2000Flat() {
+        // Car Rs 12,00,000 at 9.20% for 5 years, extra Rs 2,000/month flat:
+        // 55 months, total interest 272,585.57, interest saved 29,014.47.
+        val result = PrepaymentCalculator.calculatePrepaymentSimulation(
+            principal = 1200000.0,
+            annualRate = 9.20,
+            tenure = 5,
+            isYears = true,
+            params = PrepaymentParams(
+                extraMonthly = 2000.0
+            )
+        )
+
+        assertEquals(55, result.newMonths)
+        assertEquals(272585.57, result.newTotalInterest, 1.0)
+        assertEquals(29014.47, result.interestSaved, 1.0)
+    }
+
+    @Test
+    fun testCarLoanExtra2000With10PercentStepUpOnExtra() {
+        // Car, extra Rs 2,000 with 10% step-up on the extra:
+        // 54 months, total interest 269,903.92.
+        val result = PrepaymentCalculator.calculatePrepaymentSimulation(
+            principal = 1200000.0,
+            annualRate = 9.20,
+            tenure = 5,
+            isYears = true,
+            params = PrepaymentParams(
+                extraMonthly = 2000.0,
+                stepUpPercent = 10.0,
+                isStepUpEnabled = true,
+                stepUpMode = StepUpMode.EXTRA_PAYMENT
+            )
+        )
+
+        assertEquals(54, result.newMonths)
+        assertEquals(269903.92, result.newTotalInterest, 1.0)
+    }
+
+    @Test
+    fun testCarLoanWholeEmiStepUp10Percent() {
+        // Car, no extra, whole-EMI step-up of 10%:
+        // 50 months, total interest 267,041.89.
+        val result = PrepaymentCalculator.calculatePrepaymentSimulation(
+            principal = 1200000.0,
+            annualRate = 9.20,
+            tenure = 5,
+            isYears = true,
+            params = PrepaymentParams(
+                extraMonthly = 0.0,
+                stepUpPercent = 10.0,
+                isStepUpEnabled = true,
+                stepUpMode = StepUpMode.WHOLE_EMI
+            )
+        )
+
+        assertEquals(50, result.newMonths)
+        assertEquals(267041.89, result.newTotalInterest, 1.0)
+    }
+
+    @Test
+    fun testTenureChangeClampsLumpSumMonth() {
+        val clamped1 = EMIViewModel.clampLumpSumMonth(currentLumpSumMonth = 150, tenureValue = 5, isYearMode = true)
+        assertEquals(60, clamped1)
+
+        val clamped2 = EMIViewModel.clampLumpSumMonth(currentLumpSumMonth = 45, tenureValue = 5, isYearMode = true)
+        assertEquals(45, clamped2)
+
+        val clampedMonthMode = EMIViewModel.clampLumpSumMonth(currentLumpSumMonth = 45, tenureValue = 36, isYearMode = false)
+        assertEquals(36, clampedMonthMode)
     }
 }
