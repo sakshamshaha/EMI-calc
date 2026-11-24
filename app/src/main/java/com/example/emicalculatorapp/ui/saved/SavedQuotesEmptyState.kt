@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -53,11 +55,11 @@ fun SavedQuotesEmptyState(
 ) {
     val effectsLevel = LocalEffectsLevel.current
     val reduceMotion = LocalReduceMotion.current
-    val shouldAnimate = !reduceMotion && effectsLevel != EffectsLevel.LITE
+    val shouldAnimate = !reduceMotion && effectsLevel == EffectsLevel.FULL
 
-    val rotationDegrees = if (shouldAnimate) {
+    val angleState: State<Float> = if (shouldAnimate) {
         val transition = rememberInfiniteTransition(label = "EmblemRotation")
-        val angle by transition.animateFloat(
+        transition.animateFloat(
             initialValue = 0f,
             targetValue = 360f,
             animationSpec = infiniteRepeatable(
@@ -66,9 +68,8 @@ fun SavedQuotesEmptyState(
             ),
             label = "Angle"
         )
-        angle
     } else {
-        45f
+        remember { mutableFloatStateOf(45f) }
     }
 
     Column(
@@ -83,6 +84,7 @@ fun SavedQuotesEmptyState(
             val center = Offset(size.width / 2f, size.height / 2f)
             val outerRadius = size.width * 0.42f
             val innerRadius = size.width * 0.26f
+            val rotationDegrees = angleState.value
 
             // Outer Dashed Orbital Ring
             drawCircle(

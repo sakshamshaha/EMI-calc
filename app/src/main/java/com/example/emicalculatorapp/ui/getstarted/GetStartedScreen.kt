@@ -72,6 +72,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.emicalculatorapp.data.settings.EffectsLevel
 import com.example.emicalculatorapp.ui.components.AmbientBackground
 import com.example.emicalculatorapp.ui.components.GradientPillButton
 import com.example.emicalculatorapp.ui.theme.CardBorderGradient
@@ -82,6 +83,8 @@ import com.example.emicalculatorapp.ui.theme.EMIverseTypography
 import com.example.emicalculatorapp.ui.theme.ElectricViolet
 import com.example.emicalculatorapp.ui.theme.GlassDark65
 import com.example.emicalculatorapp.ui.theme.HotPink
+import com.example.emicalculatorapp.ui.theme.LocalEffectsLevel
+import com.example.emicalculatorapp.ui.theme.LocalHapticsEnabled
 import com.example.emicalculatorapp.ui.theme.LocalReduceMotion
 import com.example.emicalculatorapp.ui.theme.LuminousCyan
 import com.example.emicalculatorapp.ui.theme.NeoEmerald
@@ -112,7 +115,12 @@ fun GetStartedScreen(
 ) {
     val scrollState = rememberScrollState()
     val reduceMotion = LocalReduceMotion.current
+    val effectsLevel = LocalEffectsLevel.current
+    val hapticsEnabled = LocalHapticsEnabled.current
     val haptic = LocalHapticFeedback.current
+
+    val isFull = !reduceMotion && effectsLevel == EffectsLevel.FULL
+    val isBalancedOrFull = !reduceMotion && effectsLevel != EffectsLevel.LITE
 
     // Counter increment animation: counts up from 0 to 42,850 on mount, or shows immediately if reduceMotion
     var countTarget by remember { mutableFloatStateOf(if (reduceMotion) 42850f else 0f) }
@@ -136,13 +144,11 @@ fun GetStartedScreen(
         }
     }
 
-    // Infinite transitions for ambient elements
+    // Infinite transitions for ambient elements (Budget: Full <= 4, Balanced <= 2, Lite = 0)
     val infiniteTransition = rememberInfiniteTransition(label = "HeroInfiniteTransition")
 
-    // Slow 55s rotation for dashed orbital track (read lazily in graphicsLayer)
-    val orbitRotationState = if (reduceMotion) {
-        remember { mutableFloatStateOf(0f) }
-    } else {
+    // Slow 55s rotation for dashed orbital track (Full only)
+    val orbitRotationState = if (isFull) {
         infiniteTransition.animateFloat(
             initialValue = 0f,
             targetValue = 360f,
@@ -152,12 +158,12 @@ fun GetStartedScreen(
             ),
             label = "OrbitRotation"
         )
+    } else {
+        remember { mutableFloatStateOf(0f) }
     }
 
-    // 12s rotation for photon satellite dot (read lazily inside Canvas DrawScope)
-    val satelliteAngleState = if (reduceMotion) {
-        remember { mutableFloatStateOf(45f) }
-    } else {
+    // 12s rotation for photon satellite dot (Balanced & Full)
+    val satelliteAngleState = if (isBalancedOrFull) {
         infiniteTransition.animateFloat(
             initialValue = 0f,
             targetValue = 360f,
@@ -167,12 +173,12 @@ fun GetStartedScreen(
             ),
             label = "SatelliteAngle"
         )
+    } else {
+        remember { mutableFloatStateOf(45f) }
     }
 
-    // 2.4s pulse for live repo dot & button glow (read lazily in drawBehind/glowAlphaProvider)
-    val pulseAlphaState = if (reduceMotion) {
-        remember { mutableFloatStateOf(1f) }
-    } else {
+    // 2.4s pulse for live repo dot & button glow (Balanced & Full)
+    val pulseAlphaState = if (isBalancedOrFull) {
         infiniteTransition.animateFloat(
             initialValue = 0.5f,
             targetValue = 1.0f,
@@ -182,12 +188,12 @@ fun GetStartedScreen(
             ),
             label = "PulseAlpha"
         )
+    } else {
+        remember { mutableFloatStateOf(1f) }
     }
 
-    // Gentle float bobbing for chips (read lazily in graphicsLayer)
-    val chipBobYState = if (reduceMotion) {
-        remember { mutableFloatStateOf(0f) }
-    } else {
+    // Gentle float bobbing for chips (Full only)
+    val chipBobYState = if (isFull) {
         infiniteTransition.animateFloat(
             initialValue = -3f,
             targetValue = 3f,
@@ -197,14 +203,16 @@ fun GetStartedScreen(
             ),
             label = "ChipBobY"
         )
+    } else {
+        remember { mutableFloatStateOf(0f) }
     }
 
     // Cached dashed stroke effect to avoid allocation inside draw scope
     val dashedPathEffect = remember { PathEffect.dashPathEffect(floatArrayOf(12f, 12f), 0f) }
 
     Box(modifier = modifier.fillMaxSize()) {
-        // Dynamic Ambient Photon Field & Grid
-        AmbientBackground()
+        // Static background on GetStarted to prevent exceeding budget
+        AmbientBackground(enableAnimation = false)
 
         Column(
             modifier = Modifier
@@ -676,7 +684,9 @@ fun GetStartedScreen(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = ripple(color = LuminousCyan),
                             onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                if (hapticsEnabled) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                }
                                 onNavigateToCalculator()
                             }
                         )
@@ -704,7 +714,9 @@ fun GetStartedScreen(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = ripple(color = LuminousCyan),
                             onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                if (hapticsEnabled) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                }
                                 onNavigateToCalculator()
                             }
                         )

@@ -29,6 +29,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -79,7 +81,12 @@ fun HeroDonutCard(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
             Box(
-                modifier = Modifier.size(220.dp),
+                modifier = Modifier
+                    .size(220.dp)
+                    .semantics {
+                        val pPct = animatedPrincipalPct.coerceIn(0f, 100f).toInt()
+                        contentDescription = "Loan breakdown donut chart: Principal $pPct percent, Interest ${100 - pPct} percent"
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Spacer(

@@ -4,6 +4,7 @@
     <color name="white">#FFFFFFFF</color>
     
     <!-- EMIverse Cosmic Palette -->
+    <color name="splash_background">#0D092E</color>
     <color name="canvas_dark">#FF090A15</color>
     <color name="surface_dark">#FF12121E</color>
     <color name="electric_violet">#FF8B5CF6</color>

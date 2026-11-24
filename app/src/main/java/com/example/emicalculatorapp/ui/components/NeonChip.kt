@@ -26,10 +26,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.emicalculatorapp.ui.theme.EMIverseTypography
 import com.example.emicalculatorapp.ui.theme.ElectricViolet
 import com.example.emicalculatorapp.ui.theme.HeroCtaGradient
+import com.example.emicalculatorapp.ui.theme.LocalHapticsEnabled
 import com.example.emicalculatorapp.ui.theme.LocalReduceMotion
 import com.example.emicalculatorapp.ui.theme.LuminousCyan
 import com.example.emicalculatorapp.ui.theme.SurfaceContainerHigh
@@ -52,6 +57,7 @@ fun NeonChip(
     val isPressed by interactionSource.collectIsPressedAsState()
     val reduceMotion = LocalReduceMotion.current
     val haptic = LocalHapticFeedback.current
+    val hapticsEnabled = LocalHapticsEnabled.current
 
     val scale by animateFloatAsState(
         targetValue = when {
@@ -68,6 +74,10 @@ fun NeonChip(
 
     Box(
         modifier = modifier
+            .semantics {
+                this.selected = isSelected
+                this.role = Role.RadioButton
+            }
             .scale(scale)
             .then(
                 if (isSelected) {
@@ -100,7 +110,7 @@ fun NeonChip(
                 interactionSource = interactionSource,
                 indication = ripple(color = LuminousCyan),
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onClick()
                 }
             )

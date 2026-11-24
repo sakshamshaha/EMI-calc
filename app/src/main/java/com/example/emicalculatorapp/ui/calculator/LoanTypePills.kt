@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import com.example.emicalculatorapp.model.LoanCategory
 import com.example.emicalculatorapp.ui.theme.EMIverseTypography
 import com.example.emicalculatorapp.ui.theme.HeroCtaGradient
+import com.example.emicalculatorapp.ui.theme.LocalHapticsEnabled
 import com.example.emicalculatorapp.ui.theme.HotPink
 import com.example.emicalculatorapp.ui.theme.LocalReduceMotion
 import com.example.emicalculatorapp.ui.theme.LuminousCyan
@@ -100,6 +101,7 @@ fun CategoryPill(
     val isPressed by interactionSource.collectIsPressedAsState()
     val reduceMotion = LocalReduceMotion.current
     val haptic = LocalHapticFeedback.current
+    val hapticsEnabled = LocalHapticsEnabled.current
 
     val scale by animateFloatAsState(
         targetValue = when {
@@ -146,7 +148,7 @@ fun CategoryPill(
                 interactionSource = interactionSource,
                 indication = ripple(color = LuminousCyan),
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onClick()
                 }
             )

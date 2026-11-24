@@ -152,7 +152,7 @@ fun ReportProblemScreen(
         modifier = modifier.fillMaxSize()
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            AmbientBackground(scrollOffset = scrollState.value.toFloat())
+            AmbientBackground(scrollOffsetProvider = { scrollState.value.toFloat() })
 
             Column(
                 modifier = Modifier

@@ -53,12 +53,12 @@ fun AppTopBar(
                         Brush.linearGradient(listOf(LuminousCyan, ElectricViolet))
                     )
             )
-            ShimmerText(
+            Text(
                 text = "EMIverse",
                 fontFamily = SpaceGroteskFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                baseColor = TextPrimary,
+                color = TextPrimary,
                 modifier = Modifier.padding(start = 8.dp)
             )
         }

@@ -86,7 +86,7 @@ fun InsightsCarousel(
         }
     }
 
-    val canAutoAdvance = !reduceMotion && effectsLevel != EffectsLevel.LITE && isScreenResumed && !pagerState.isScrollInProgress
+    val canAutoAdvance = !reduceMotion && effectsLevel == EffectsLevel.FULL && isScreenResumed && !pagerState.isScrollInProgress
 
     LaunchedEffect(canAutoAdvance, pagerState.currentPage, insights.size) {
         if (canAutoAdvance && insights.size > 1) {

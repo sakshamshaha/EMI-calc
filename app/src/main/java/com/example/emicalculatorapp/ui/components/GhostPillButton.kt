@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.example.emicalculatorapp.ui.theme.ElectricViolet
 import com.example.emicalculatorapp.ui.theme.GlassWhite05
+import com.example.emicalculatorapp.ui.theme.LocalHapticsEnabled
 import com.example.emicalculatorapp.ui.theme.LocalReduceMotion
 import com.example.emicalculatorapp.ui.theme.LuminousCyan
 
@@ -53,6 +54,7 @@ fun GhostPillButton(
     val isPressed by interactionSource.collectIsPressedAsState()
     val reduceMotion = LocalReduceMotion.current
     val haptic = LocalHapticFeedback.current
+    val hapticsEnabled = LocalHapticsEnabled.current
 
     val scale by animateFloatAsState(
         targetValue = if (isPressed && !reduceMotion) 0.97f else 1.0f,
@@ -74,7 +76,7 @@ fun GhostPillButton(
                 indication = ripple(color = LuminousCyan.copy(alpha = 0.3f)),
                 enabled = enabled,
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onClick()
                 }
             )

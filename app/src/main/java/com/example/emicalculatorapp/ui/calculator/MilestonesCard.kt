@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import com.example.emicalculatorapp.model.AmortizationMilestone
 import com.example.emicalculatorapp.ui.components.GlassCard
 import com.example.emicalculatorapp.ui.theme.EMIverseTypography
+import com.example.emicalculatorapp.ui.theme.LocalHapticsEnabled
 import com.example.emicalculatorapp.ui.theme.LocalNumberFormat
 import com.example.emicalculatorapp.ui.theme.LuminousCyan
 import com.example.emicalculatorapp.ui.theme.PrimaryLight
@@ -66,6 +67,7 @@ fun AmortizationMilestonesCard(
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
+    val hapticsEnabled = LocalHapticsEnabled.current
     var isAmortizationExpanded by rememberSaveable { mutableStateOf(true) }
     val chevronRotation by animateFloatAsState(
         targetValue = if (isAmortizationExpanded) 180f else 0f,
@@ -89,7 +91,7 @@ fun AmortizationMilestonesCard(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
                     ) {
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                         isAmortizationExpanded = !isAmortizationExpanded
                     },
                 horizontalArrangement = Arrangement.SpaceBetween,

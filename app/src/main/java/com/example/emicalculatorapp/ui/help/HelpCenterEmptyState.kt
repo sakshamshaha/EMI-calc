@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -42,10 +44,10 @@ fun HelpCenterEmptyState(
 ) {
     val reduceMotion = LocalReduceMotion.current
     val effectsLevel = LocalEffectsLevel.current
-    val shouldAnimate = !reduceMotion && effectsLevel != EffectsLevel.LITE
+    val shouldAnimate = !reduceMotion && effectsLevel == EffectsLevel.FULL
 
-    val infiniteTransition = rememberInfiniteTransition(label = "empty_pulse")
-    val pulseFraction by if (shouldAnimate) {
+    val pulseFractionState: State<Float> = if (shouldAnimate) {
+        val infiniteTransition = rememberInfiniteTransition(label = "empty_pulse")
         infiniteTransition.animateFloat(
             initialValue = 0.7f,
             targetValue = 1.3f,
@@ -56,12 +58,7 @@ fun HelpCenterEmptyState(
             label = "pulse_fraction"
         )
     } else {
-        rememberInfiniteTransition(label = "static").animateFloat(
-            initialValue = 1f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(tween(1000)),
-            label = "static_fraction"
-        )
+        remember { mutableFloatStateOf(1f) }
     }
 
     Column(
@@ -74,6 +71,7 @@ fun HelpCenterEmptyState(
         Canvas(modifier = Modifier.size(80.dp)) {
             val center = Offset(size.width / 2f, size.height / 2f)
             val baseRadius = size.minDimension / 4f
+            val pulseFraction = pulseFractionState.value
 
             // Outer pulsing ring
             drawCircle(

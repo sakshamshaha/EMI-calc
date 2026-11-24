@@ -76,7 +76,7 @@ fun HelpCenterScreen(
     val scrollState = rememberScrollState()
 
     Box(modifier = modifier.fillMaxSize().background(CanvasColor)) {
-        AmbientBackground(scrollOffset = scrollState.value.toFloat())
+        AmbientBackground(scrollOffsetProvider = { scrollState.value.toFloat() })
 
         Column(
             modifier = Modifier

@@ -15,9 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +39,7 @@ import com.example.emicalculatorapp.ui.theme.LocalReduceMotion
 import com.example.emicalculatorapp.ui.theme.LuminousCyan
 import com.example.emicalculatorapp.ui.theme.SpaceGroteskFamily
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * High-octane CTA button with an angled luminous shine sheen traversing across the surface.
@@ -68,21 +69,8 @@ fun ShineButton(
         label = "ShineButtonScale"
     )
 
+    val coroutineScope = rememberCoroutineScope()
     val shineOffset = remember { Animatable(-1f) }
-    val enableAutoShine = !reduceMotion && effectsLevel == EffectsLevel.FULL
-
-    LaunchedEffect(enableAutoShine) {
-        if (enableAutoShine) {
-            while (true) {
-                delay(3500)
-                shineOffset.snapTo(-1f)
-                shineOffset.animateTo(
-                    targetValue = 2f,
-                    animationSpec = tween(durationMillis = 900, easing = LinearEasing)
-                )
-            }
-        }
-    }
 
     Box(
         modifier = modifier
@@ -120,6 +108,12 @@ fun ShineButton(
             ) {
                 if (hapticsEnabled) {
                     view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                }
+                coroutineScope.launch {
+                    if (!reduceMotion && effectsLevel != EffectsLevel.LITE) {
+                        shineOffset.snapTo(-1f)
+                        shineOffset.animateTo(2f, animationSpec = tween(500, easing = LinearEasing))
+                    }
                 }
                 onClick()
             }

@@ -39,8 +39,8 @@ import com.example.emicalculatorapp.ui.theme.LuminousCyan
 @Composable
 fun AmbientBackground(
     modifier: Modifier = Modifier,
-    scrollOffset: Float = 0f,
-    enableAnimation: Boolean = true
+    enableAnimation: Boolean = true,
+    scrollOffsetProvider: () -> Float = { 0f }
 ) {
     val effectsLevel = LocalEffectsLevel.current
     val reduceMotion = LocalReduceMotion.current
@@ -111,9 +111,10 @@ fun AmbientBackground(
                         val p1 = pulse1State?.value ?: 1f
                         val p2 = pulse2State?.value ?: 1f
 
-                        val parallaxOrb1 = if (isParallaxAllowed) ParallaxCalculator.calculateParallaxOffset(scrollOffset, 0.10f) else 0f
-                        val parallaxOrb2 = if (isParallaxAllowed) ParallaxCalculator.calculateParallaxOffset(scrollOffset, 0.20f) else 0f
-                        val parallaxOrb3 = if (isParallaxAllowed) ParallaxCalculator.calculateParallaxOffset(scrollOffset, 0.15f) else 0f
+                        val currentOffset = scrollOffsetProvider()
+                        val parallaxOrb1 = if (isParallaxAllowed) ParallaxCalculator.calculateParallaxOffset(currentOffset, 0.10f) else 0f
+                        val parallaxOrb2 = if (isParallaxAllowed) ParallaxCalculator.calculateParallaxOffset(currentOffset, 0.20f) else 0f
+                        val parallaxOrb3 = if (isParallaxAllowed) ParallaxCalculator.calculateParallaxOffset(currentOffset, 0.15f) else 0f
 
                         val orb1Center = Offset(w * 0.15f, h * 0.1f + parallaxOrb1)
                         val orb2Center = Offset(w * 0.85f, h * 0.45f + parallaxOrb2)

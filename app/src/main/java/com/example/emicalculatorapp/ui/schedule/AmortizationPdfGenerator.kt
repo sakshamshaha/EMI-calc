@@ -6,7 +6,6 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
 import android.net.Uri
-import android.os.Build
 import androidx.core.content.FileProvider
 import androidx.core.content.res.ResourcesCompat
 import com.example.emicalculatorapp.R
@@ -112,11 +111,7 @@ object AmortizationPdfGenerator {
         }
 
         // Verify Rupee glyph rendering support; fallback to "Rs." if system font cannot render it
-        val supportsRupee = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            boldTextPaint.hasGlyph("₹")
-        } else {
-            true
-        }
+        val supportsRupee = boldTextPaint.hasGlyph("₹")
 
         fun formatPdfCurrency(amount: Double): String {
             val formatted = EMIViewModel.formatCurrency(amount, numberFormat)

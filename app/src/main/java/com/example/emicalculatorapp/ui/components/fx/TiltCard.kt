@@ -3,8 +3,8 @@ package com.example.emicalculatorapp.ui.components.fx
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -64,52 +64,42 @@ fun TiltCard(
         modifier = modifier
             .onSizeChanged { cardSize = Size(it.width.toFloat(), it.height.toFloat()) }
             .pointerInput(cardSize, enabled) {
-                detectTapGestures(
-                    onPress = { offset ->
-                        val touchX = offset.x - cardSize.width / 2f
-                        val touchY = offset.y - cardSize.height / 2f
-                        val (targetX, targetY) = TiltCalculator.calculateTiltAngles(
-                            touchX = touchX,
-                            touchY = touchY,
-                            width = cardSize.width,
-                            height = cardSize.height
-                        )
-                        coroutineScope.launch {
-                            rotX.animateTo(targetX, springSpec)
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    val touchX = down.position.x - cardSize.width / 2f
+                    val touchY = down.position.y - cardSize.height / 2f
+                    val (initialTargetX, initialTargetY) = TiltCalculator.calculateTiltAngles(
+                        touchX = touchX,
+                        touchY = touchY,
+                        width = cardSize.width,
+                        height = cardSize.height
+                    )
+                    coroutineScope.launch { rotX.animateTo(initialTargetX, springSpec) }
+                    coroutineScope.launch { rotY.animateTo(initialTargetY, springSpec) }
+
+                    do {
+                        val event = awaitPointerEvent()
+                        val pointer = event.changes.firstOrNull { it.id == down.id } ?: break
+                        if (pointer.pressed) {
+                            val currX = pointer.position.x - cardSize.width / 2f
+                            val currY = pointer.position.y - cardSize.height / 2f
+                            val (targetX, targetY) = TiltCalculator.calculateTiltAngles(
+                                touchX = currX,
+                                touchY = currY,
+                                width = cardSize.width,
+                                height = cardSize.height
+                            )
+                            coroutineScope.launch { rotX.snapTo(targetX) }
+                            coroutineScope.launch { rotY.snapTo(targetY) }
+                            // Deliberately DO NOT consume pointer.
+                            // Leaving pointer unconsumed allows the parent verticalScroll container
+                            // to intercept vertical scroll gestures naturally.
                         }
-                        coroutineScope.launch {
-                            rotY.animateTo(targetY, springSpec)
-                        }
-                        tryAwaitRelease()
-                        coroutineScope.launch { rotX.animateTo(0f, springSpec) }
-                        coroutineScope.launch { rotY.animateTo(0f, springSpec) }
-                    }
-                )
-            }
-            .pointerInput(cardSize, enabled) {
-                detectDragGestures(
-                    onDrag = { change, _ ->
-                        change.consume()
-                        val touchX = change.position.x - cardSize.width / 2f
-                        val touchY = change.position.y - cardSize.height / 2f
-                        val (targetX, targetY) = TiltCalculator.calculateTiltAngles(
-                            touchX = touchX,
-                            touchY = touchY,
-                            width = cardSize.width,
-                            height = cardSize.height
-                        )
-                        coroutineScope.launch { rotX.snapTo(targetX) }
-                        coroutineScope.launch { rotY.snapTo(targetY) }
-                    },
-                    onDragEnd = {
-                        coroutineScope.launch { rotX.animateTo(0f, springSpec) }
-                        coroutineScope.launch { rotY.animateTo(0f, springSpec) }
-                    },
-                    onDragCancel = {
-                        coroutineScope.launch { rotX.animateTo(0f, springSpec) }
-                        coroutineScope.launch { rotY.animateTo(0f, springSpec) }
-                    }
-                )
+                    } while (event.changes.any { it.pressed })
+
+                    coroutineScope.launch { rotX.animateTo(0f, springSpec) }
+                    coroutineScope.launch { rotY.animateTo(0f, springSpec) }
+                }
             }
             .graphicsLayer {
                 this.cameraDistance = 16f * density

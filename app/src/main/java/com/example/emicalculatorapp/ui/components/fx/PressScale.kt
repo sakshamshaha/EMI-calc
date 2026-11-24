@@ -14,6 +14,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import com.example.emicalculatorapp.data.settings.EffectsLevel
 import com.example.emicalculatorapp.ui.theme.LocalEffectsLevel
+import com.example.emicalculatorapp.ui.theme.LocalHapticsEnabled
 import com.example.emicalculatorapp.ui.theme.LocalReduceMotion
 import kotlinx.coroutines.launch
 
@@ -30,6 +31,7 @@ fun Modifier.pressScale(
     val reduceMotion = LocalReduceMotion.current
     val effectsLevel = LocalEffectsLevel.current
     val haptic = LocalHapticFeedback.current
+    val hapticsEnabled = LocalHapticsEnabled.current
     val coroutineScope = rememberCoroutineScope()
 
     if (reduceMotion || effectsLevel == EffectsLevel.LITE) {
@@ -37,7 +39,7 @@ fun Modifier.pressScale(
             this.pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        if (provideHaptic) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        if (provideHaptic && hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                         onClick()
                     }
                 )
@@ -61,7 +63,7 @@ fun Modifier.pressScale(
         .pointerInput(onClick) {
             detectTapGestures(
                 onPress = {
-                    if (provideHaptic) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    if (provideHaptic && hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     coroutineScope.launch { scale.animateTo(targetScale, springSpec) }
                     tryAwaitRelease()
                     coroutineScope.launch { scale.animateTo(1f, springSpec) }

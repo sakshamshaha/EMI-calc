@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.emicalculatorapp.ui.theme.EMIverseTypography
 import com.example.emicalculatorapp.ui.theme.ElectricViolet
+import com.example.emicalculatorapp.ui.theme.LocalHapticsEnabled
 import com.example.emicalculatorapp.ui.theme.LocalReduceMotion
 import com.example.emicalculatorapp.ui.theme.LuminousCyan
 import com.example.emicalculatorapp.ui.theme.SurfaceContainerLowest
@@ -84,10 +85,11 @@ fun QuantumSlider(
     }
 
     val haptic = LocalHapticFeedback.current
+    val hapticsEnabled = LocalHapticsEnabled.current
     var lastHapticValue by remember { mutableFloatStateOf(value) }
 
     LaunchedEffect(value) {
-        if (stepHapticThreshold > 0f && isActive) {
+        if (stepHapticThreshold > 0f && isActive && hapticsEnabled) {
             if (abs(value - lastHapticValue) >= stepHapticThreshold) {
                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 lastHapticValue = value

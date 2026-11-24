@@ -25,6 +25,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -103,7 +105,14 @@ fun AffordabilityGauge(
                     .height(145.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Canvas(modifier = Modifier.fillMaxWidth().height(145.dp)) {
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(145.dp)
+                        .semantics {
+                            contentDescription = "Total obligation ratio gauge: ${ratioPercent.toInt()} percent, Zone ${zone.name}"
+                        }
+                ) {
                     val width = size.width
                     val height = size.height
                     val radius = (minOf(width, height * 2f) / 2.2f).coerceAtLeast(60f)
