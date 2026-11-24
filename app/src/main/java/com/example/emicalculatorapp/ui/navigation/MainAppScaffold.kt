@@ -36,12 +36,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -50,7 +52,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.emicalculatorapp.data.database.AppDatabase
+import com.example.emicalculatorapp.data.database.QuoteRepository
 import com.example.emicalculatorapp.data.settings.SettingsRepository
+import com.example.emicalculatorapp.model.QuoteCalculations
 import com.example.emicalculatorapp.ui.affordability.AffordabilityScreen
 import com.example.emicalculatorapp.ui.calculator.CalculatorScreen
 import com.example.emicalculatorapp.ui.compare.CompareScreen
@@ -68,6 +73,7 @@ import com.example.emicalculatorapp.ui.theme.TextSecondary
 import com.example.emicalculatorapp.ui.tools.PrepaymentScreen
 import com.example.emicalculatorapp.ui.tools.ToolsHubScreen
 import com.example.emicalculatorapp.viewmodel.EMIViewModel
+import com.example.emicalculatorapp.viewmodel.SavedQuotesState
 
 /**
  * Main application scaffold hosting the top bar, NavHost, and floating GlassBottomBar.
@@ -86,6 +92,14 @@ fun MainAppScaffold(
     val reduceMotion = LocalReduceMotion.current
     val density = LocalDensity.current
     val isKeyboardOpen = WindowInsets.ime.getBottom(density) > 0
+
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val savedQuotesState = remember {
+        val db = AppDatabase.getInstance(context.applicationContext)
+        val repo = QuoteRepository(db.quoteDao())
+        SavedQuotesState(coroutineScope, repo)
+    }
 
     var showSettingsSheet by remember { mutableStateOf(false) }
 
@@ -215,7 +229,15 @@ fun MainAppScaffold(
                     composable(NavDestination.Calculate.route) {
                         CalculatorScreen(
                             onNavigateBack = onNavigateToGetStarted,
-                            viewModel = sharedViewModel
+                            viewModel = sharedViewModel,
+                            savedQuotesState = savedQuotesState,
+                            onNavigateToSaved = {
+                                navController.navigate(NavDestination.Saved.route) {
+                                    popUpTo(NavDestination.Calculate.route) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
                         )
                     }
 
@@ -224,7 +246,17 @@ fun MainAppScaffold(
                     }
 
                     composable(NavDestination.Compare.route) {
-                        CompareScreen(viewModel = sharedViewModel)
+                        CompareScreen(
+                            viewModel = sharedViewModel,
+                            savedQuotesState = savedQuotesState,
+                            onNavigateToSaved = {
+                                navController.navigate(NavDestination.Saved.route) {
+                                    popUpTo(NavDestination.Calculate.route) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        )
                     }
 
                     composable(NavDestination.Tools.route) {
@@ -253,7 +285,51 @@ fun MainAppScaffold(
                     }
 
                     composable(NavDestination.Saved.route) {
-                        SavedQuotesScreen()
+                        SavedQuotesScreen(
+                            savedQuotesState = savedQuotesState,
+                            onLoadQuoteIntoCalculate = { quote ->
+                                val mapped = QuoteCalculations.mapQuoteToLoanState(quote)
+                                sharedViewModel.loadQuote(
+                                    category = mapped.category,
+                                    amount = mapped.amount,
+                                    rate = mapped.rate,
+                                    tenureValue = mapped.tenureValue,
+                                    isYearMode = mapped.isYearMode
+                                )
+                                navController.navigate(NavDestination.Calculate.route) {
+                                    popUpTo(NavDestination.Calculate.route) { inclusive = false }
+                                    launchSingleTop = true
+                                }
+                            },
+                            onCompareTwoQuotes = { quoteA, quoteB ->
+                                val mappedA = QuoteCalculations.mapQuoteToLoanState(quoteA)
+                                val mappedB = QuoteCalculations.mapQuoteToLoanState(quoteB)
+                                sharedViewModel.loadQuote(
+                                    category = mappedA.category,
+                                    amount = mappedA.amount,
+                                    rate = mappedA.rate,
+                                    tenureValue = mappedA.tenureValue,
+                                    isYearMode = mappedA.isYearMode
+                                )
+                                sharedViewModel.setLoanB(
+                                    amount = mappedB.amount,
+                                    rate = mappedB.rate,
+                                    tenureValue = mappedB.tenureValue,
+                                    isYearMode = mappedB.isYearMode,
+                                    processingFeePercent = mappedB.processingFeePercent
+                                )
+                                navController.navigate(NavDestination.Compare.route) {
+                                    popUpTo(NavDestination.Calculate.route) { saveState = true }
+                                    launchSingleTop = true
+                                }
+                            },
+                            onNavigateToCalculate = {
+                                navController.navigate(NavDestination.Calculate.route) {
+                                    popUpTo(NavDestination.Calculate.route) { inclusive = false }
+                                    launchSingleTop = true
+                                }
+                            }
+                        )
                     }
                 }
             }

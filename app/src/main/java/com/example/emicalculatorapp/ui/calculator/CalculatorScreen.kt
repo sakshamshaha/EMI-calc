@@ -26,12 +26,17 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -45,6 +50,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.emicalculatorapp.ui.components.AmbientBackground
+import com.example.emicalculatorapp.ui.saved.SaveQuoteBottomSheet
 import com.example.emicalculatorapp.ui.theme.EMIverseTheme
 import com.example.emicalculatorapp.ui.theme.EMIverseTypography
 import com.example.emicalculatorapp.ui.theme.LocalNumberFormat
@@ -54,12 +60,16 @@ import com.example.emicalculatorapp.ui.theme.SurfaceContainerHigh
 import com.example.emicalculatorapp.ui.theme.TextPrimary
 import com.example.emicalculatorapp.ui.theme.TextSecondary
 import com.example.emicalculatorapp.viewmodel.EMIViewModel
+import com.example.emicalculatorapp.viewmodel.SavedQuotesState
+import kotlinx.coroutines.launch
 
 @Composable
 fun CalculatorScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: EMIViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    savedQuotesState: SavedQuotesState? = null,
+    onNavigateToSaved: () -> Unit = {},
     showTopBar: Boolean = false
 ) {
     BackHandler { onNavigateBack() }
@@ -67,6 +77,9 @@ fun CalculatorScreen(
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()
     val reduceMotion = LocalReduceMotion.current
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showSaveSheet by remember { mutableStateOf(false) }
 
     // Observable ViewModel states collected with lifecycle
     val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
@@ -297,9 +310,51 @@ fun CalculatorScreen(
                 isYearMode = isYearMode,
                 result = result,
                 numberFormat = numberFormat,
-                onReset = { viewModel.resetToHomePreset() }
+                onReset = { viewModel.resetToHomePreset() },
+                onSaveClick = { showSaveSheet = true }
             )
         }
+
+        if (showSaveSheet) {
+            SaveQuoteBottomSheet(
+                category = selectedCategory,
+                principal = loanAmount,
+                annualRate = interestRate,
+                tenureMonths = if (isYearMode) tenureValue * 12 else tenureValue,
+                processingFeePercent = 0.0,
+                numberFormat = numberFormat,
+                onSaveQuote = { quoteName ->
+                    savedQuotesState?.saveQuote(
+                        name = quoteName,
+                        category = selectedCategory,
+                        principal = loanAmount,
+                        rate = interestRate,
+                        tenureMonths = if (isYearMode) tenureValue * 12 else tenureValue,
+                        processingFeePercent = 0.0,
+                        onSaved = {
+                            coroutineScope.launch {
+                                val snackRes = snackbarHostState.showSnackbar(
+                                    message = "Quote saved to Vault",
+                                    actionLabel = "View",
+                                    duration = SnackbarDuration.Short
+                                )
+                                if (snackRes == SnackbarResult.ActionPerformed) {
+                                    onNavigateToSaved()
+                                }
+                            }
+                        }
+                    )
+                },
+                onDismiss = { showSaveSheet = false }
+            )
+        }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 85.dp, start = 16.dp, end = 16.dp)
+        )
     }
 }
 

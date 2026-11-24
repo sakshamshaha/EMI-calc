@@ -167,6 +167,30 @@ class EMIViewModel : ViewModel() {
         selectCategory(LoanCategory.HOME)
     }
 
+    fun loadQuote(
+        category: LoanCategory,
+        amount: Double,
+        rate: Double,
+        tenureValue: Int,
+        isYearMode: Boolean
+    ) {
+        _selectedCategory.value = category
+        _loanAmount.value = amount
+        _interestRate.value = rate
+        _isYearMode.value = isYearMode
+        _tenureValue.value = tenureValue
+        clampPrepaymentLumpSumMonth()
+        recalculate()
+    }
+
+    fun setLoanB(
+        amount: Double,
+        rate: Double,
+        tenureValue: Int,
+        isYearMode: Boolean,
+        processingFeePercent: Double = 0.0
+    ) = compare.setLoanB(amount, rate, tenureValue, isYearMode, processingFeePercent)
+
     private fun clampPrepaymentLumpSumMonth() = prepayment.clampLumpSumMonth()
 
     private fun recalculate() {

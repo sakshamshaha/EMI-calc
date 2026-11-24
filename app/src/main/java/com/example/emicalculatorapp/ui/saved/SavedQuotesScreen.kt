@@ -1,9 +1,17 @@
 package com.example.emicalculatorapp.ui.saved
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,128 +19,306 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.emicalculatorapp.data.database.QuoteEntity
+import com.example.emicalculatorapp.data.settings.NumberFormatStyle
+import com.example.emicalculatorapp.ui.components.AmbientBackground
 import com.example.emicalculatorapp.ui.components.GlassCard
-import com.example.emicalculatorapp.ui.components.fx.SweepBorderCard
+import com.example.emicalculatorapp.ui.components.fx.ShimmerBox
+import com.example.emicalculatorapp.ui.components.fx.ShineButton
 import com.example.emicalculatorapp.ui.theme.CanvasColor
 import com.example.emicalculatorapp.ui.theme.ElectricViolet
 import com.example.emicalculatorapp.ui.theme.InterFamily
+import com.example.emicalculatorapp.ui.theme.LocalNumberFormat
 import com.example.emicalculatorapp.ui.theme.LuminousCyan
+import com.example.emicalculatorapp.ui.theme.MintGreen
 import com.example.emicalculatorapp.ui.theme.SpaceGroteskFamily
+import com.example.emicalculatorapp.ui.theme.SurfaceContainerHigh
+import com.example.emicalculatorapp.ui.theme.SurfaceContainerLowest
 import com.example.emicalculatorapp.ui.theme.TextPrimary
 import com.example.emicalculatorapp.ui.theme.TextSecondary
+import com.example.emicalculatorapp.viewmodel.SavedQuotesState
+import kotlinx.coroutines.launch
 
 /**
- * Saved Quotes screen stub.
- * Full local Room database storage, swipe-to-delete with undo, and quote loading arrive in Phase 6.
+ * Saved Quotes screen displaying Room-persisted loan scenarios.
+ * Supports swipe-to-delete with undo, tap-to-load into Calculate,
+ * inline renaming, pin toggling, and two-quote selection for comparison.
  */
 @Composable
 fun SavedQuotesScreen(
+    savedQuotesState: SavedQuotesState,
+    onLoadQuoteIntoCalculate: (QuoteEntity) -> Unit,
+    onCompareTwoQuotes: (QuoteEntity, QuoteEntity) -> Unit,
+    onNavigateToCalculate: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val scrollState = rememberScrollState()
+    BackHandler {
+        if (savedQuotesState.isSelectionMode) {
+            savedQuotesState.clearSelection()
+        } else {
+            onNavigateToCalculate()
+        }
+    }
 
-    Column(
+    val quotes by savedQuotesState.quotes.collectAsStateWithLifecycle()
+    val isLoading by savedQuotesState.isLoading.collectAsStateWithLifecycle()
+    val selectedIds by savedQuotesState.selectedQuoteIds.collectAsStateWithLifecycle()
+    val numberFormat = LocalNumberFormat.current
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    Box(
         modifier = modifier
             .fillMaxSize()
             .background(CanvasColor)
-            .padding(horizontal = 20.dp)
-            .verticalScroll(scrollState)
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        AmbientBackground()
 
-        Text(
-            text = "Saved Quotes",
-            fontFamily = SpaceGroteskFamily,
-            fontWeight = FontWeight.Bold,
-            fontSize = 24.sp,
-            color = TextPrimary
-        )
-        Text(
-            text = "Locally preserved loan calculations, comparisons & scenarios",
-            fontFamily = InterFamily,
-            fontSize = 13.sp,
-            color = TextSecondary,
-            modifier = Modifier.padding(top = 4.dp, bottom = 18.dp)
-        )
-
-        SweepBorderCard(
-            modifier = Modifier.fillMaxWidth(),
-            gradientColors = listOf(ElectricViolet, LuminousCyan, ElectricViolet)
-        ) {
-            Column(modifier = Modifier.padding(18.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Bookmark,
-                        contentDescription = null,
-                        tint = LuminousCyan,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Text(
-                        text = "Saved Loan Quotes",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = TextPrimary,
-                        modifier = Modifier.padding(start = 10.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Header Section
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
+            ) {
                 Text(
-                    text = "Your saved quotes will appear here. Phase 6 integrates full Room persistence for saving custom quotes, animated vector checkmarks, celebratory feedback, and instant reload into the calculator.",
+                    text = "Saved Quotes",
+                    fontFamily = SpaceGroteskFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp,
+                    color = TextPrimary
+                )
+                Text(
+                    text = "Tap to load into Calculate, long-press to compare 2 quotes",
                     fontFamily = InterFamily,
                     fontSize = 13.sp,
                     color = TextSecondary,
-                    lineHeight = 18.sp
+                    modifier = Modifier.padding(top = 2.dp)
                 )
+            }
 
-                Spacer(modifier = Modifier.height(14.dp))
+            // Selection Mode Bar
+            AnimatedVisibility(
+                visible = selectedIds.isNotEmpty(),
+                enter = slideInVertically() + fadeIn(),
+                exit = slideOutVertically() + fadeOut()
+            ) {
+                SelectionActionBar(
+                    selectedCount = selectedIds.size,
+                    canCompare = selectedIds.size == 2,
+                    onCompare = {
+                        val first = quotes.find { it.id == selectedIds.getOrNull(0) }
+                        val second = quotes.find { it.id == selectedIds.getOrNull(1) }
+                        if (first != null && second != null) {
+                            onCompareTwoQuotes(first, second)
+                            savedQuotesState.clearSelection()
+                        }
+                    },
+                    onCancel = { savedQuotesState.clearSelection() }
+                )
+            }
 
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(ElectricViolet.copy(alpha = 0.2f))
-                        .border(1.dp, ElectricViolet.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = "💾 Arriving in Phase 6",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 12.sp,
-                        color = LuminousCyan
+            // Main Content: Loading Shimmer, Empty State, or Quote List
+            when {
+                isLoading -> {
+                    LoadingShimmerSkeleton()
+                }
+                quotes.isEmpty() -> {
+                    SavedQuotesEmptyState(
+                        onNavigateToCalculate = onNavigateToCalculate,
+                        modifier = Modifier.weight(1f)
                     )
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        items(quotes, key = { it.id }) { quote ->
+                            val isSelected = selectedIds.contains(quote.id)
+                            val selectionIndex = when {
+                                selectedIds.getOrNull(0) == quote.id -> 1
+                                selectedIds.getOrNull(1) == quote.id -> 2
+                                else -> 0
+                            }
+
+                            SavedQuoteCard(
+                                quote = quote,
+                                numberFormat = numberFormat,
+                                isSelectionMode = selectedIds.isNotEmpty(),
+                                isSelected = isSelected,
+                                selectionIndex = selectionIndex,
+                                onQuoteClick = {
+                                    if (selectedIds.isNotEmpty()) {
+                                        savedQuotesState.toggleSelectQuote(quote.id)
+                                    } else {
+                                        onLoadQuoteIntoCalculate(quote)
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = "Loaded \"${quote.name}\" into Calculate",
+                                                duration = SnackbarDuration.Short
+                                            )
+                                        }
+                                    }
+                                },
+                                onQuoteLongClick = {
+                                    savedQuotesState.toggleSelectQuote(quote.id)
+                                },
+                                onTogglePin = {
+                                    savedQuotesState.togglePin(quote)
+                                },
+                                onRename = { newName ->
+                                    savedQuotesState.renameQuote(quote.id, newName)
+                                },
+                                onDelete = {
+                                    savedQuotesState.deleteQuote(quote)
+                                    scope.launch {
+                                        val result = snackbarHostState.showSnackbar(
+                                            message = "Deleted \"${quote.name}\"",
+                                            actionLabel = "Undo",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                        if (result == SnackbarResult.ActionPerformed) {
+                                            savedQuotesState.undoDelete()
+                                        }
+                                    }
+                                }
+                            )
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(100.dp))
+                        }
+                    }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(28.dp))
-
-        Text(
-            text = "Estimates only, not financial advice.",
-            fontFamily = InterFamily,
-            fontSize = 11.sp,
-            color = TextSecondary.copy(alpha = 0.6f),
-            modifier = Modifier.align(Alignment.CenterHorizontally)
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 85.dp, start = 16.dp, end = 16.dp)
         )
+    }
+}
 
-        Spacer(modifier = Modifier.height(100.dp))
+@Composable
+private fun SelectionActionBar(
+    selectedCount: Int,
+    canCompare: Boolean,
+    onCompare: () -> Unit,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 6.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(SurfaceContainerLowest.copy(alpha = 0.9f))
+            .border(1.dp, ElectricViolet.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
+            .padding(horizontal = 16.dp, vertical = 10.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onCancel, modifier = Modifier.size(28.dp)) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cancel selection",
+                        tint = TextSecondary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "$selectedCount of 2 selected",
+                    fontFamily = SpaceGroteskFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    color = TextPrimary
+                )
+            }
+
+            if (canCompare) {
+                ShineButton(
+                    text = "⇄ Compare A & B",
+                    onClick = onCompare,
+                    gradientBrush = Brush.horizontalGradient(listOf(ElectricViolet, LuminousCyan))
+                )
+            } else {
+                Text(
+                    text = "Select 1 more to compare",
+                    fontFamily = InterFamily,
+                    fontSize = 12.sp,
+                    color = TextSecondary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LoadingShimmerSkeleton() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        repeat(3) {
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        ShimmerBox(modifier = Modifier.size(width = 140.dp, height = 18.dp))
+                        ShimmerBox(modifier = Modifier.size(width = 60.dp, height = 18.dp))
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        ShimmerBox(modifier = Modifier.size(width = 80.dp, height = 32.dp))
+                        ShimmerBox(modifier = Modifier.size(width = 90.dp, height = 32.dp))
+                        ShimmerBox(modifier = Modifier.size(width = 85.dp, height = 32.dp))
+                    }
+                }
+            }
+        }
     }
 }

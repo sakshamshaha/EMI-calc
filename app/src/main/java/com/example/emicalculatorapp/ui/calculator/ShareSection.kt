@@ -23,6 +23,9 @@ import com.example.emicalculatorapp.model.EMICalculationResult
 import com.example.emicalculatorapp.model.LoanCategory
 import com.example.emicalculatorapp.ui.components.ConfettiBurst
 import com.example.emicalculatorapp.ui.components.fx.ShineButton
+import com.example.emicalculatorapp.ui.theme.ElectricViolet
+import com.example.emicalculatorapp.ui.theme.LuminousCyan
+import com.example.emicalculatorapp.ui.theme.MintGreen
 import com.example.emicalculatorapp.ui.theme.SurfaceBright
 import com.example.emicalculatorapp.ui.theme.SurfaceContainerHigh
 import com.example.emicalculatorapp.viewmodel.EMIViewModel
@@ -40,6 +43,7 @@ fun ShareQuoteSection(
     result: EMICalculationResult,
     numberFormat: NumberFormatStyle,
     onReset: () -> Unit,
+    onSaveClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -51,31 +55,38 @@ fun ShareQuoteSection(
         modifier = modifier
             .fillMaxWidth()
             .padding(bottom = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Shine Reset Button
         ShineButton(
             text = "Reset",
             onClick = onReset,
-            modifier = Modifier.width(100.dp),
+            modifier = Modifier.width(76.dp),
             gradientBrush = Brush.horizontalGradient(listOf(SurfaceContainerHigh, SurfaceBright))
         )
 
-        // Shine Save & Share Quote Button
+        // Save Quote Button
+        ShineButton(
+            text = "Save",
+            onClick = onSaveClick,
+            modifier = Modifier.width(82.dp),
+            gradientBrush = Brush.horizontalGradient(listOf(MintGreen.copy(alpha = 0.85f), LuminousCyan.copy(alpha = 0.85f)))
+        )
+
+        // Share Quote Button
         Box(
             modifier = Modifier.weight(1f),
             contentAlignment = Alignment.Center
         ) {
             ShineButton(
-                text = "Save & Share Quote",
+                text = "Share Quote",
                 onClick = {
                     if (!isSharing) {
                         isSharing = true
                         showConfetti = true
 
                         coroutineScope.launch {
-                            // Let the confetti play for 700ms without blocking UI
                             delay(700)
 
                             val tenureStr = if (isYearMode) "$tenureValue Years" else "$tenureValue Months"
@@ -105,7 +116,8 @@ fun ShareQuoteSection(
                         }
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                gradientBrush = Brush.horizontalGradient(listOf(ElectricViolet, LuminousCyan))
             )
 
             // Confetti Particle Burst Anchor

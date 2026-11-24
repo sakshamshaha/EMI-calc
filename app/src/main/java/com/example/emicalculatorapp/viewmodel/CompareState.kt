@@ -98,6 +98,22 @@ class CompareState(
         }
     }
 
+    fun setLoanB(
+        amount: Double,
+        rate: Double,
+        tenureValue: Int,
+        isYearMode: Boolean,
+        processingFeePercent: Double = 0.0
+    ) {
+        _loanBState.value = LoanInputState(
+            amount = amount.coerceIn(10000.0, 50000000.0),
+            rate = (round(rate.coerceIn(1.0, 30.0) * 100.0) / 100.0),
+            tenureValue = tenureValue.coerceIn(1, if (isYearMode) 30 else 360),
+            isYearMode = isYearMode,
+            processingFeePercent = (round(processingFeePercent.coerceIn(0.0, 5.0) * 100.0) / 100.0)
+        )
+    }
+
     fun copyAToB() {
         _loanBState.value = LoanInputState(
             amount = loanAmount.value,
