@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- EMIverse Cosmic Palette -->
+    <color name="canvas_dark">#FF090A15</color>
+    <color name="surface_dark">#FF12121E</color>
+    <color name="electric_violet">#FF8B5CF6</color>
+    <color name="luminous_cyan">#FF06B6D4</color>
+    <color name="hot_pink">#FFEC4899</color>
+    
+    <!-- Primary Blue Palette (Legacy preserved) -->
+    <color name="primary_blue">#1E88E5</color>
+    <color name="primary_blue_dark">#1565C0</color>
+    <color name="primary_blue_light">#E3F2FD</color>
+    <color name="primary_blue_surface">#F0F7FF</color>
+    
+    <!-- Neutral Backgrounds & Surfaces -->
+    <color name="background_light">#F8FAFC</color>
+    <color name="card_background">#FFFFFFFF</color>
+    <color name="border_light">#CBD5E1</color>
+    <color name="border_focused">#1E88E5</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#0F172A</color>
+    <color name="text_secondary">#64748B</color>
+    <color name="text_hint">#94A3B8</color>
+    <color name="text_blue">#1565C0</color>
+    
+    <!-- Button Colors -->
+    <color name="btn_reset_bg">#EDF2F7</color>
+    <color name="btn_reset_text">#334155</color>
+</resources>

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><title>EMIverse</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "surface": "#12121e", "on-primary-fixed-variant": "#5516be", "on-secondary-fixed": "#001f26", "on-tertiary-container": "#570032", "surface-bright": "#383845", "on-tertiary-fixed": "#3e0022", "primary-container": "#a078ff", "on-tertiary": "#640039", "surface-tint": "#d0bcff", "on-primary-fixed": "#23005c", "tertiary-fixed-dim": "#ffb0cd", "on-tertiary-fixed-variant": "#8c0053", "surface-container": "#1e1f2b", "on-error-container": "#ffdad6", "on-primary": "#3c0091", "outline-variant": "#494454", "on-secondary-fixed-variant": "#004e5c", "tertiary": "#ffb0cd", "on-error": "#690005", "error-container": "#93000a", "tertiary-container": "#f751a1", "inverse-on-surface": "#2f2f3c", "surface-variant": "#333440", "primary": "#d0bcff", "surface-container-high": "#282935", "primary-fixed-dim": "#d0bcff", "secondary-container": "#03b5d3", "on-secondary": "#003640", "on-surface": "#e2e1f1", "surface-container-lowest": "#0c0d18", "tertiary-fixed": "#ffd9e4", "surface-container-low": "#1a1b26", "surface-container-highest": "#333440", "error": "#ffb4ab", "surface-dim": "#12121e", "secondary-fixed-dim": "#4cd7f6", "outline": "#958ea0", "background": "#12121e", "secondary": "#4cd7f6", "inverse-surface": "#e2e1f1", "primary-fixed": "#e9ddff", "on-secondary-container": "#00424e", "inverse-primary": "#6d3bd7", "on-background": "#e2e1f1", "on-primary-container": "#340080", "secondary-fixed": "#acedff", "on-surface-variant": "#cbc3d7" }, borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" }, spacing: { "space-lg": "1.5rem", "gutter": "1rem", "space-2xs": "0.25rem", "gutter-tablet": "1.5rem", "space-sm": "0.75rem", "margin-tablet": "2rem", "margin-desktop": "3rem", "space-xl": "2rem", "space-2xl": "3rem", "space-3xl": "4rem", "space-md": "1rem", "gutter-desktop": "2rem", "margin": "1.25rem", "space-xs": "0.5rem" }, fontFamily: { "headline-md": ["Space Grotesk"], "headline-lg-mobile": ["Space Grotesk"], "label-md": ["Space Grotesk"], "display-hero-mobile": ["Space Grotesk"], "label-caps": ["Space Grotesk"], "body-md": ["Inter"], "label-lg": ["Space Grotesk"], "display-hero": ["Space Grotesk"], "body-lg": ["Inter"], "headline-sm": ["Space Grotesk"], "headline-lg": ["Space Grotesk"], "body-sm": ["Inter"], "numeric-metric": ["Space Grotesk"] }, fontSize: { "headline-md": ["22px", { lineHeight: "30px", letterSpacing: "-0.01em", fontWeight: "600" }], "headline-lg-mobile": ["26px", { lineHeight: "34px", letterSpacing: "-0.01em", fontWeight: "700" }], "label-md": ["12px", { lineHeight: "16px", letterSpacing: "0.06em", fontWeight: "500" }], "display-hero-mobile": ["36px", { lineHeight: "44px", letterSpacing: "-0.02em", fontWeight: "700" }], "label-caps": ["10px", { lineHeight: "14px", letterSpacing: "0.12em", fontWeight: "700" }], "body-md": ["14px", { lineHeight: "20px", fontWeight: "400" }], "label-lg": ["14px", { lineHeight: "20px", letterSpacing: "0.04em", fontWeight: "600" }], "display-hero": ["48px", { lineHeight: "56px", letterSpacing: "-0.03em", fontWeight: "700" }], "body-lg": ["16px", { lineHeight: "24px", fontWeight: "400" }], "headline-sm": ["18px", { lineHeight: "26px", fontWeight: "600" }], "headline-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }], "body-sm": ["12px", { lineHeight: "18px", fontWeight: "400" }], "numeric-metric": ["40px", { lineHeight: "44px", letterSpacing: "-0.02em", fontWeight: "700" }] } } } };</script><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#12121e;color:#e2e1f1;overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased min-h-screen relative flex flex-col"><div class="fixed inset-0 pointer-events-none z-0 overflow-hidden"><div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[340px] h-[340px] bg-primary/10 rounded-full blur-[110px]"></div><div class="absolute top-1/3 -right-24 w-[280px] h-[280px] bg-secondary/10 rounded-full blur-[100px]"></div><div class="absolute bottom-20 -left-20 w-[300px] h-[300px] bg-tertiary-container/10 rounded-full blur-[120px]"></div></div><header class="fixed top-0 w-full z-50 pt-safe bg-surface/75 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.18)]"><div class="h-16 px-gutter flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-xs"><img alt="EMIverse Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrANNirZ3eIIvQOQ7XWhJ3isTyHBWsJ03vJUF_qa6JISqNyriAMWQxATp26r9-2q2Oe0UOdjFdukt_nHtU9yfRSw-m8MuOJBdU0p-IjJGhUOXptovFv0gNd8Pikt4-WWxIzgIob2nReByaGFK2GrMH3E-jR530e3tGwwvojtDRXFxci1mBXr1SCyZ3k5WxUYLIXXvHhEKwcaJeHEWLdlcle_NgTtWcr-0x2jlbq6cfulBg"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">EMIverse</span><span class="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Quantum Engine</span></div></div><div class="flex items-center gap-space-xs"><h1 class="font-label-lg text-label-lg text-on-surface-variant truncate max-w-[120px]">Calculator Dashboard</h1><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative z-10 w-full pt-16 pb-24 px-gutter min-h-screen bg-surface"><div class="flex flex-col w-full pb-10 gap-y-space-md">
+<!-- Micro-Navigation Bar inside page slot -->
+<div class="flex items-center justify-between w-full pt-1">
+<button aria-label="Go Back" class="w-10 h-10 rounded-full bg-surface-container-high/80 backdrop-blur-xl flex items-center justify-center text-on-surface shadow-[0_4px_16px_rgba(208,188,255,0.15)] active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+</button>
+<div class="flex items-center gap-space-2xs">
+<span class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_#4cd7f6] animate-pulse"></span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface tracking-tight">EMI Calculator</h2>
+</div>
+<button aria-label="Settings &amp; Presets" class="w-10 h-10 rounded-full bg-surface-container-high/80 backdrop-blur-xl flex items-center justify-center text-on-surface-variant hover:text-secondary shadow-[0_4px_16px_rgba(76,215,246,0.12)] active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+</button>
+</div>
+<!-- Loan Category Filter Pills -->
+<div class="w-full flex items-center gap-space-xs overflow-x-auto pb-1 no-scrollbar">
+<button class="loan-tab-btn flex items-center gap-space-xs px-space-md py-space-xs rounded-full bg-gradient-to-r from-tertiary-container via-primary-container to-secondary-container text-on-surface shadow-[0_0_18px_rgba(247,81,161,0.45)] whitespace-nowrap active:scale-95 transition-all" data-loan-preset="home" type="button">
+<span class="material-symbols-outlined text-[18px]">home</span>
+<span class="font-label-md text-label-md font-semibold tracking-wide">Home</span>
+</button>
+<button class="loan-tab-btn flex items-center gap-space-xs px-space-md py-space-xs rounded-full bg-surface-container-high/70 backdrop-blur-lg text-on-surface-variant hover:text-on-surface whitespace-nowrap active:scale-95 transition-all" data-loan-preset="car" type="button">
+<span class="material-symbols-outlined text-[18px]">directions_car</span>
+<span class="font-label-md text-label-md tracking-wide">Car</span>
+</button>
+<button class="loan-tab-btn flex items-center gap-space-xs px-space-md py-space-xs rounded-full bg-surface-container-high/70 backdrop-blur-lg text-on-surface-variant hover:text-on-surface whitespace-nowrap active:scale-95 transition-all" data-loan-preset="personal" type="button">
+<span class="material-symbols-outlined text-[18px]">work</span>
+<span class="font-label-md text-label-md tracking-wide">Personal</span>
+</button>
+<button class="loan-tab-btn flex items-center gap-space-xs px-space-md py-space-xs rounded-full bg-surface-container-high/70 backdrop-blur-lg text-on-surface-variant hover:text-on-surface whitespace-nowrap active:scale-95 transition-all" data-loan-preset="education" type="button">
+<span class="material-symbols-outlined text-[18px]">school</span>
+<span class="font-label-md text-label-md tracking-wide">Education</span>
+</button>
+</div>
+<!-- Hero EMI Quantum Result Card & Donut -->
+<div class="relative w-full rounded-lg p-space-lg bg-surface-container-low/85 backdrop-blur-2xl shadow-[0_16px_40px_-10px_rgba(160,120,255,0.22)] overflow-hidden">
+<!-- Ambient Neon Edge Glow -->
+<div class="absolute -top-12 -right-12 w-32 h-32 bg-primary/20 rounded-full blur-2xl pointer-events-none"></div>
+<div class="absolute -bottom-10 -left-10 w-28 h-28 bg-secondary/20 rounded-full blur-2xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col items-center">
+<!-- Donut Dial Visualization -->
+<div class="relative w-56 h-56 flex items-center justify-center my-space-xs">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 160 160">
+<circle class="opacity-50" cx="80" cy="80" fill="transparent" r="66" stroke="#1e1f2b" stroke-width="12"></circle>
+<!-- Principal Arc (Primary Violet) -->
+<circle class="transition-all duration-300 drop-shadow-[0_0_10px_rgba(208,188,255,0.7)]" cx="80" cy="80" fill="transparent" id="donut-principal-ring" r="66" stroke="#d0bcff" stroke-dasharray="414.69" stroke-dashoffset="216.5" stroke-linecap="round" stroke-width="13"></circle>
+<!-- Interest Arc (Hyper Cyan) -->
+<circle class="transition-all duration-300 drop-shadow-[0_0_10px_rgba(76,215,246,0.7)]" cx="80" cy="80" fill="transparent" id="donut-interest-ring" r="66" stroke="#4cd7f6" stroke-dasharray="414.69" stroke-dashoffset="198.19" stroke-linecap="round" stroke-width="13" style="stroke-dashoffset: -216.5;"></circle>
+</svg>
+<!-- Center Counter Cluster -->
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center px-2">
+<span class="font-label-caps text-label-caps uppercase text-secondary tracking-widest mb-1">Monthly Repayment</span>
+<div class="flex items-baseline justify-center gap-0.5 text-on-surface">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">₹</span>
+<span class="font-display-hero-mobile text-display-hero-mobile tracking-tighter tabular-nums leading-none" id="display-hero-emi">39,215</span>
+</div>
+<span class="mt-2 font-label-caps text-label-caps px-2.5 py-0.5 rounded-full bg-surface-container-high/80 text-on-surface-variant font-medium" id="display-tenure-tag">20 Yrs Tenure</span>
+</div>
+</div>
+<!-- Donut Legend Pills -->
+<div class="flex items-center justify-center gap-space-md mt-space-xs w-full">
+<div class="flex items-center gap-space-2xs bg-surface-container-high/60 backdrop-blur-md px-3 py-1.5 rounded-full">
+<span class="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_8px_#d0bcff]"></span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Principal:</span>
+<span class="font-label-caps text-label-caps text-primary font-bold tabular-nums" id="legend-principal-pct">47.8%</span>
+</div>
+<div class="flex items-center gap-space-2xs bg-surface-container-high/60 backdrop-blur-md px-3 py-1.5 rounded-full">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary shadow-[0_0_8px_#4cd7f6]"></span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Interest:</span>
+<span class="font-label-caps text-label-caps text-secondary font-bold tabular-nums" id="legend-interest-pct">52.2%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Metric Matrix Grid (2x2) -->
+<div class="grid grid-cols-2 gap-space-sm w-full">
+<!-- Principal Amount -->
+<div class="p-space-md rounded bg-surface-container-low/80 backdrop-blur-xl flex flex-col justify-between">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-caps text-label-caps uppercase text-on-surface-variant tracking-wider">Principal</span>
+<span class="w-2 h-2 rounded-full bg-primary shadow-[0_0_6px_#d0bcff]"></span>
+</div>
+<div class="font-headline-sm text-headline-sm text-on-surface tabular-nums truncate" id="metric-principal">₹ 45,00,000</div>
+<span class="font-label-caps text-label-caps text-primary mt-1">Direct Capital</span>
+</div>
+<!-- Total Interest -->
+<div class="p-space-md rounded bg-surface-container-low/80 backdrop-blur-xl flex flex-col justify-between">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-caps text-label-caps uppercase text-on-surface-variant tracking-wider">Total Interest</span>
+<span class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_6px_#4cd7f6]"></span>
+</div>
+<div class="font-headline-sm text-headline-sm text-secondary tabular-nums truncate" id="metric-interest">₹ 49,11,600</div>
+<span class="font-label-caps text-label-caps text-secondary mt-1">Cost of Credit</span>
+</div>
+<!-- Total Payable -->
+<div class="p-space-md rounded bg-surface-container-low/80 backdrop-blur-xl flex flex-col justify-between">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-caps text-label-caps uppercase text-on-surface-variant tracking-wider">Total Payable</span>
+<span class="material-symbols-outlined text-[14px] text-tertiary">account_balance_wallet</span>
+</div>
+<div class="font-headline-sm text-headline-sm text-tertiary tabular-nums truncate" id="metric-total">₹ 94,11,600</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant mt-1">Principal + Int</span>
+</div>
+<!-- Yearly Velocity Spark -->
+<div class="p-space-md rounded bg-surface-container-low/80 backdrop-blur-xl flex flex-col justify-between">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-caps text-label-caps uppercase text-on-surface-variant tracking-wider">Annual Velocity</span>
+<span class="material-symbols-outlined text-[14px] text-secondary">trending_up</span>
+</div>
+<div class="font-headline-sm text-headline-sm text-on-surface tabular-nums" id="metric-yearly">₹ 4,70,580</div>
+<span class="font-label-caps text-label-caps text-secondary font-semibold mt-1">12x Installments</span>
+</div>
+</div>
+<!-- Interactive Controls Section -->
+<div class="flex flex-col gap-space-md w-full">
+<!-- Card 1: Loan Amount Slider -->
+<div class="p-space-lg rounded-lg bg-surface-container/70 backdrop-blur-xl shadow-[0_8px_32px_-4px_rgba(208,188,255,0.08)] flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-2xs">
+<span class="material-symbols-outlined text-[18px] text-secondary">monetization_on</span>
+<span class="font-label-lg text-label-lg text-on-surface">Loan Amount</span>
+</div>
+<div class="flex items-center gap-1 bg-surface-container-lowest/80 px-3 py-1 rounded-full shadow-inner">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">₹</span>
+<input class="w-24 bg-transparent font-headline-sm text-headline-sm text-secondary font-bold text-right outline-none tabular-nums focus:text-primary transition-colors" id="input-amount-text" type="text" value="45,00,000"/>
+</div>
+</div>
+<!-- Quick Preset Filter Chips -->
+<div class="flex items-center gap-space-xs mt-1 overflow-x-auto no-scrollbar">
+<button class="preset-chip px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-caps font-label-caps active:scale-95 transition-all" data-amount-val="1000000" type="button">₹10 L</button>
+<button class="preset-chip px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-caps font-label-caps active:scale-95 transition-all" data-amount-val="2500000" type="button">₹25 L</button>
+<button class="preset-chip px-2.5 py-1 rounded bg-primary-container text-on-primary-container font-bold text-label-caps font-label-caps shadow-[0_0_12px_rgba(160,120,255,0.4)] active:scale-95 transition-all" data-amount-val="4500000" type="button">₹45 L</button>
+<button class="preset-chip px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-caps font-label-caps active:scale-95 transition-all" data-amount-val="7500000" type="button">₹75 L</button>
+<button class="preset-chip px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-caps font-label-caps active:scale-95 transition-all" data-amount-val="10000000" type="button">₹1 Cr</button>
+</div>
+<!-- Quantum Slider -->
+<div class="relative w-full flex flex-col justify-center mt-2">
+<input class="w-full h-2 rounded-full appearance-none bg-surface-container-highest cursor-pointer accent-secondary focus:outline-none" id="slider-amount" max="10000000" min="100000" step="50000" type="range" value="4500000"/>
+<div class="flex justify-between items-center text-on-surface-variant font-label-caps text-label-caps mt-2">
+<span>₹ 1 Lakh</span>
+<span>₹ 50 Lakhs</span>
+<span>₹ 1 Crore</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Interest Rate Slider -->
+<div class="p-space-lg rounded-lg bg-surface-container/70 backdrop-blur-xl shadow-[0_8px_32px_-4px_rgba(208,188,255,0.08)] flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-2xs">
+<span class="material-symbols-outlined text-[18px] text-tertiary">percent</span>
+<span class="font-label-lg text-label-lg text-on-surface">Interest Rate (p.a.)</span>
+</div>
+<div class="flex items-center gap-1 bg-surface-container-lowest/80 px-3 py-1 rounded-full shadow-inner">
+<input class="w-16 bg-transparent font-headline-sm text-headline-sm text-tertiary font-bold text-right outline-none tabular-nums" id="input-rate-text" max="25" min="1" step="0.05" type="number" value="8.55"/>
+<span class="font-headline-sm text-headline-sm text-tertiary font-bold">%</span>
+</div>
+</div>
+<!-- Quick Preset Interest Pills -->
+<div class="flex items-center gap-space-xs mt-1 overflow-x-auto no-scrollbar">
+<button class="rate-chip px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-caps font-label-caps active:scale-95 transition-all" data-rate-val="7.5" type="button">7.50%</button>
+<button class="rate-chip px-2.5 py-1 rounded bg-tertiary-container text-on-tertiary font-bold text-label-caps font-label-caps shadow-[0_0_12px_rgba(247,81,161,0.4)] active:scale-95 transition-all" data-rate-val="8.55" type="button">8.55%</button>
+<button class="rate-chip px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-caps font-label-caps active:scale-95 transition-all" data-rate-val="9.25" type="button">9.25%</button>
+<button class="rate-chip px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-caps font-label-caps active:scale-95 transition-all" data-rate-val="11.5" type="button">11.50%</button>
+</div>
+<div class="relative w-full flex flex-col justify-center mt-2">
+<input class="w-full h-2 rounded-full appearance-none bg-surface-container-highest cursor-pointer accent-tertiary-container focus:outline-none" id="slider-rate" max="20" min="4" step="0.05" type="range" value="8.55"/>
+<div class="flex justify-between items-center text-on-surface-variant font-label-caps text-label-caps mt-2">
+<span>4.0%</span>
+<span>12.0%</span>
+<span>20.0%</span>
+</div>
+</div>
+</div>
+<!-- Card 3: Loan Tenure Slider -->
+<div class="p-space-lg rounded-lg bg-surface-container/70 backdrop-blur-xl shadow-[0_8px_32px_-4px_rgba(208,188,255,0.08)] flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-2xs">
+<span class="material-symbols-outlined text-[18px] text-primary">schedule</span>
+<span class="font-label-lg text-label-lg text-on-surface">Loan Tenure</span>
+</div>
+<div class="flex items-center gap-2">
+<!-- Segmented Toggle (Yr/Mo) -->
+<div class="flex items-center bg-surface-container-lowest/80 p-0.5 rounded-full">
+<button class="px-2.5 py-0.5 rounded-full bg-primary text-on-primary font-label-caps text-label-caps font-bold transition-all shadow-[0_0_8px_#d0bcff]" id="btn-mode-yr" type="button">Yr</button>
+<button class="px-2.5 py-0.5 rounded-full text-on-surface-variant font-label-caps text-label-caps transition-all" id="btn-mode-mo" type="button">Mo</button>
+</div>
+<div class="flex items-center gap-1 bg-surface-container-lowest/80 px-3 py-1 rounded-full shadow-inner">
+<input class="w-10 bg-transparent font-headline-sm text-headline-sm text-primary font-bold text-right outline-none tabular-nums" id="input-tenure-text" max="360" min="1" type="number" value="20"/>
+<span class="font-headline-sm text-headline-sm text-primary font-bold" id="tenure-unit-label">Yrs</span>
+</div>
+</div>
+</div>
+<!-- Quick Preset Tenure Pills -->
+<div class="flex items-center gap-space-xs mt-1 overflow-x-auto no-scrollbar">
+<button class="tenure-chip px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-caps font-label-caps active:scale-95 transition-all" data-tenure-val="5" type="button">5 Yrs</button>
+<button class="tenure-chip px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-caps font-label-caps active:scale-95 transition-all" data-tenure-val="10" type="button">10 Yrs</button>
+<button class="tenure-chip px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-caps font-label-caps active:scale-95 transition-all" data-tenure-val="15" type="button">15 Yrs</button>
+<button class="tenure-chip px-2.5 py-1 rounded bg-primary text-on-primary font-bold text-label-caps font-label-caps shadow-[0_0_12px_rgba(208,188,255,0.4)] active:scale-95 transition-all" data-tenure-val="20" type="button">20 Yrs</button>
+<button class="tenure-chip px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-caps font-label-caps active:scale-95 transition-all" data-tenure-val="30" type="button">30 Yrs</button>
+</div>
+<div class="relative w-full flex flex-col justify-center mt-2">
+<input class="w-full h-2 rounded-full appearance-none bg-surface-container-highest cursor-pointer accent-primary focus:outline-none" id="slider-tenure" max="30" min="1" step="1" type="range" value="20"/>
+<div class="flex justify-between items-center text-on-surface-variant font-label-caps text-label-caps mt-2">
+<span id="slider-min-label">1 Yr</span>
+<span id="slider-mid-label">15 Yrs</span>
+<span id="slider-max-label">30 Yrs</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Expandable Amortization Snapshot Card -->
+<div class="w-full rounded-lg bg-surface-container-low/80 backdrop-blur-xl p-space-md shadow-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-secondary">analytics</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Amortization Milestones</span>
+</div>
+<span class="font-label-caps text-label-caps px-2 py-0.5 rounded-full bg-secondary-container/20 text-secondary">Payoff Horizon</span>
+</div>
+<!-- Mini Progress Bars Breakdown -->
+<div class="flex flex-col gap-space-xs mt-1">
+<!-- Milestone 1 -->
+<div class="flex flex-col gap-1 bg-surface-container-high/40 p-2.5 rounded">
+<div class="flex justify-between items-center text-body-sm font-body-sm">
+<span class="text-on-surface font-semibold">Year 1 (End of 2025)</span>
+<span class="text-secondary tabular-nums">Balance: ₹43.8 L</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container-highest overflow-hidden flex">
+<div class="h-full bg-primary w-[3%]" title="Principal Paid"></div>
+<div class="h-full bg-secondary w-[97%]" title="Interest Paid"></div>
+</div>
+<div class="flex justify-between text-on-surface-variant font-label-caps text-label-caps">
+<span>Principal ₹85.6K (18%)</span>
+<span>Interest ₹3.84L (82%)</span>
+</div>
+</div>
+<!-- Milestone 5 -->
+<div class="flex flex-col gap-1 bg-surface-container-high/40 p-2.5 rounded">
+<div class="flex justify-between items-center text-body-sm font-body-sm">
+<span class="text-on-surface font-semibold">Year 5 (End of 2029)</span>
+<span class="text-secondary tabular-nums">Balance: ₹39.4 L</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container-highest overflow-hidden flex">
+<div class="h-full bg-primary w-[14%]" title="Principal Paid"></div>
+<div class="h-full bg-secondary w-[86%]" title="Interest Paid"></div>
+</div>
+<div class="flex justify-between text-on-surface-variant font-label-caps text-label-caps">
+<span>Principal Paid ₹5.6L</span>
+<span>Remaining 87.5%</span>
+</div>
+</div>
+<!-- Milestone 10 -->
+<div class="flex flex-col gap-1 bg-surface-container-high/40 p-2.5 rounded">
+<div class="flex justify-between items-center text-body-sm font-body-sm">
+<span class="text-on-surface font-semibold">Year 10 (Crossover Point)</span>
+<span class="text-secondary tabular-nums">Balance: ₹30.8 L</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container-highest overflow-hidden flex">
+<div class="h-full bg-primary w-[32%]" title="Principal Paid"></div>
+<div class="h-full bg-secondary w-[68%]" title="Interest Paid"></div>
+</div>
+<div class="flex justify-between text-on-surface-variant font-label-caps text-label-caps">
+<span>Principal &gt; Interest share begins</span>
+<span>Remaining 68.4%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Sleek Motion Annotations Callout Badges -->
+<div class="w-full p-space-md rounded bg-surface-container-lowest/60 backdrop-blur-sm flex flex-col gap-space-2xs">
+<div class="flex items-center gap-1.5 mb-1">
+<span class="material-symbols-outlined text-[14px] text-primary">motion_photos_on</span>
+<span class="font-label-caps text-label-caps uppercase text-primary tracking-widest">Haptic &amp; Motion Specs</span>
+</div>
+<div class="grid grid-cols-2 gap-2 text-on-surface-variant font-label-caps text-label-caps">
+<div class="bg-surface-container-high/50 p-2 rounded flex flex-col">
+<span class="text-secondary font-bold">[Live Morph]</span>
+<span>SVG dashoffsets lerp smoothly on drag velocity.</span>
+</div>
+<div class="bg-surface-container-high/50 p-2 rounded flex flex-col">
+<span class="text-tertiary font-bold">[Rolling Digits]</span>
+<span>Digits glide via requestAnimationFrame lerp counters.</span>
+</div>
+<div class="bg-surface-container-high/50 p-2 rounded flex flex-col">
+<span class="text-primary font-bold">[Haptic Pulse]</span>
+<span>Thumbs scale 1.15x with haptic micro-clicks on ticks.</span>
+</div>
+<div class="bg-surface-container-high/50 p-2 rounded flex flex-col">
+<span class="text-secondary-fixed-dim font-bold">[Spring Dynamics]</span>
+<span>Result cards react with subtle magnetic tilt inertia.</span>
+</div>
+</div>
+</div>
+<!-- Bottom Floating Execution Deck -->
+<div class="w-full flex items-center gap-space-sm pt-2">
+<!-- Reset Button -->
+<button class="flex items-center justify-center gap-1 w-24 h-12 rounded-full bg-surface-container-high/80 text-on-surface-variant hover:text-on-surface active:scale-95 transition-all shadow-md" id="btn-reset" type="button">
+<span class="material-symbols-outlined text-[18px]">restart_alt</span>
+<span class="font-label-md text-label-md">Reset</span>
+</button>
+<!-- Save & Share Quote with Confetti Burst -->
+<button class="relative flex-1 h-12 rounded-full bg-gradient-to-r from-tertiary-container via-primary-container to-secondary-container text-on-surface font-label-lg text-label-lg font-bold flex items-center justify-center gap-space-xs shadow-[0_0_24px_rgba(160,120,255,0.45)] active:scale-95 transition-all overflow-hidden" id="btn-save-quote" type="button">
+<span class="material-symbols-outlined text-[20px]">ios_share</span>
+<span>Save &amp; Share Quote</span>
+<span class="absolute inset-0 pointer-events-none" id="confetti-anchor"></span>
+</button>
+</div>
+</div>
+<!-- Client-side Interactive Engine -->
+<script>
+  (function initEMIverseCalculator() {
+    // DOM Elements
+    const sliderAmount = document.getElementById('slider-amount');
+    const inputAmount = document.getElementById('input-amount-text');
+    const sliderRate = document.getElementById('slider-rate');
+    const inputRate = document.getElementById('input-rate-text');
+    const sliderTenure = document.getElementById('slider-tenure');
+    const inputTenure = document.getElementById('input-tenure-text');
+    const tenureUnitLabel = document.getElementById('tenure-unit-label');
+    const displayEmi = document.getElementById('display-hero-emi');
+    const displayTenureTag = document.getElementById('display-tenure-tag');
+    const metricPrincipal = document.getElementById('metric-principal');
+    const metricInterest = document.getElementById('metric-interest');
+    const metricTotal = document.getElementById('metric-total');
+    const metricYearly = document.getElementById('metric-yearly');
+    const legendPrincipalPct = document.getElementById('legend-principal-pct');
+    const legendInterestPct = document.getElementById('legend-interest-pct');
+    const donutPrincipalRing = document.getElementById('donut-principal-ring');
+    const donutInterestRing = document.getElementById('donut-interest-ring');
+    const btnModeYr = document.getElementById('btn-mode-yr');
+    const btnModeMo = document.getElementById('btn-mode-mo');
+    const btnReset = document.getElementById('btn-reset');
+    const btnSave = document.getElementById('btn-save-quote');
+    const confettiAnchor = document.getElementById('confetti-anchor');
+
+    let isYearMode = true;
+    let targetEmi = 39215;
+    let currentAnimatedEmi = 39215;
+    let animationFrameId = null;
+
+    const CIRCLE_CIRCUMFERENCE = 414.69; // 2 * PI * 66
+
+    function formatIndianCurrency(num) {
+      const rounded = Math.round(num);
+      return rounded.toLocaleString('en-IN');
+    }
+
+    function calculateEMI() {
+      const P = parseFloat(sliderAmount.value) || 0;
+      const annualR = parseFloat(sliderRate.value) || 0;
+      let rawTenure = parseFloat(sliderTenure.value) || 1;
+      
+      const n = isYearMode ? rawTenure * 12 : rawTenure;
+      const r = (annualR / 12) / 100;
+
+      let emi = 0;
+      if (r > 0 && n > 0 && P > 0) {
+        emi = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+      } else if (n > 0) {
+        emi = P / n;
+      }
+
+      const totalPayment = emi * n;
+      const totalInterest = Math.max(0, totalPayment - P);
+      const principalShare = totalPayment > 0 ? (P / totalPayment) : 0.5;
+      const interestShare = totalPayment > 0 ? (totalInterest / totalPayment) : 0.5;
+
+      // Update Target for Rolling animation
+      targetEmi = emi;
+      animateDigits();
+
+      // Update Labels & Matrices
+      metricPrincipal.textContent = '₹ ' + formatIndianCurrency(P);
+      metricInterest.textContent = '₹ ' + formatIndianCurrency(totalInterest);
+      metricTotal.textContent = '₹ ' + formatIndianCurrency(totalPayment);
+      metricYearly.textContent = '₹ ' + formatIndianCurrency(emi * 12);
+      
+      const pPct = (principalShare * 100).toFixed(1);
+      const iPct = (interestShare * 100).toFixed(1);
+      legendPrincipalPct.textContent = pPct + '%';
+      legendInterestPct.textContent = iPct + '%';
+
+      displayTenureTag.textContent = isYearMode ? (rawTenure + ' Yrs Tenure') : (rawTenure + ' Months Tenure');
+
+      // Update Donut Stroke Offsets
+      const principalOffset = CIRCLE_CIRCUMFERENCE * (1 - principalShare);
+      donutPrincipalRing.style.strokeDashoffset = principalOffset;
+      donutInterestRing.style.strokeDashoffset = -principalOffset;
+    }
+
+    function animateDigits() {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+      const step = () => {
+        const diff = targetEmi - currentAnimatedEmi;
+        if (Math.abs(diff) < 1) {
+          currentAnimatedEmi = targetEmi;
+          displayEmi.textContent = formatIndianCurrency(currentAnimatedEmi);
+          return;
+        }
+        currentAnimatedEmi += diff * 0.25;
+        displayEmi.textContent = formatIndianCurrency(currentAnimatedEmi);
+        animationFrameId = requestAnimationFrame(step);
+      };
+      step();
+    }
+
+    // Amount Slider & Input
+    sliderAmount.addEventListener('input', (e) => {
+      inputAmount.value = formatIndianCurrency(e.target.value);
+      highlightMatchingChip('.preset-chip', e.target.value, 'data-amount-val');
+      calculateEMI();
+    });
+
+    inputAmount.addEventListener('change', (e) => {
+      const cleanVal = e.target.value.replace(/[^0-9]/g, '');
+      const parsed = Math.min(10000000, Math.max(100000, parseInt(cleanVal) || 100000));
+      sliderAmount.value = parsed;
+      inputAmount.value = formatIndianCurrency(parsed);
+      calculateEMI();
+    });
+
+    // Rate Slider & Input
+    sliderRate.addEventListener('input', (e) => {
+      inputRate.value = parseFloat(e.target.value).toFixed(2);
+      highlightMatchingChip('.rate-chip', e.target.value, 'data-rate-val');
+      calculateEMI();
+    });
+
+    inputRate.addEventListener('change', (e) => {
+      const parsed = Math.min(25, Math.max(1, parseFloat(e.target.value) || 8.55));
+      sliderRate.value = parsed;
+      inputRate.value = parsed.toFixed(2);
+      calculateEMI();
+    });
+
+    // Tenure Slider & Input
+    sliderTenure.addEventListener('input', (e) => {
+      inputTenure.value = e.target.value;
+      highlightMatchingChip('.tenure-chip', e.target.value, 'data-tenure-val');
+      calculateEMI();
+    });
+
+    inputTenure.addEventListener('change', (e) => {
+      const maxVal = isYearMode ? 30 : 360;
+      const parsed = Math.min(maxVal, Math.max(1, parseInt(e.target.value) || 1));
+      sliderTenure.value = parsed;
+      inputTenure.value = parsed;
+      calculateEMI();
+    });
+
+    // Mode Toggle
+    btnModeYr.addEventListener('click', () => {
+      if (isYearMode) return;
+      isYearMode = true;
+      btnModeYr.className = 'px-2.5 py-0.5 rounded-full bg-primary text-on-primary font-label-caps text-label-caps font-bold transition-all shadow-[0_0_8px_#d0bcff]';
+      btnModeMo.className = 'px-2.5 py-0.5 rounded-full text-on-surface-variant font-label-caps text-label-caps transition-all';
+      tenureUnitLabel.textContent = 'Yrs';
+      
+      const yrVal = Math.max(1, Math.round(sliderTenure.value / 12));
+      sliderTenure.max = 30;
+      sliderTenure.value = yrVal;
+      inputTenure.value = yrVal;
+      document.getElementById('slider-min-label').textContent = '1 Yr';
+      document.getElementById('slider-mid-label').textContent = '15 Yrs';
+      document.getElementById('slider-max-label').textContent = '30 Yrs';
+      calculateEMI();
+    });
+
+    btnModeMo.addEventListener('click', () => {
+      if (!isYearMode) return;
+      isYearMode = false;
+      btnModeMo.className = 'px-2.5 py-0.5 rounded-full bg-primary text-on-primary font-label-caps text-label-caps font-bold transition-all shadow-[0_0_8px_#d0bcff]';
+      btnModeYr.className = 'px-2.5 py-0.5 rounded-full text-on-surface-variant font-label-caps text-label-caps transition-all';
+      tenureUnitLabel.textContent = 'Mo';
+
+      const moVal = Math.min(360, Math.round(sliderTenure.value * 12));
+      sliderTenure.max = 360;
+      sliderTenure.value = moVal;
+      inputTenure.value = moVal;
+      document.getElementById('slider-min-label').textContent = '12 Mo';
+      document.getElementById('slider-mid-label').textContent = '180 Mo';
+      document.getElementById('slider-max-label').textContent = '360 Mo';
+      calculateEMI();
+    });
+
+    // Preset Chips Handlers
+    document.querySelectorAll('.preset-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = btn.getAttribute('data-amount-val');
+        sliderAmount.value = val;
+        inputAmount.value = formatIndianCurrency(val);
+        highlightMatchingChip('.preset-chip', val, 'data-amount-val');
+        calculateEMI();
+      });
+    });
+
+    document.querySelectorAll('.rate-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = btn.getAttribute('data-rate-val');
+        sliderRate.value = val;
+        inputRate.value = parseFloat(val).toFixed(2);
+        highlightMatchingChip('.rate-chip', val, 'data-rate-val');
+        calculateEMI();
+      });
+    });
+
+    document.querySelectorAll('.tenure-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = btn.getAttribute('data-tenure-val');
+        if (!isYearMode) btnModeYr.click();
+        sliderTenure.value = val;
+        inputTenure.value = val;
+        highlightMatchingChip('.tenure-chip', val, 'data-tenure-val');
+        calculateEMI();
+      });
+    });
+
+    function highlightMatchingChip(selector, targetVal, attr) {
+      document.querySelectorAll(selector).forEach(b => {
+        if (Math.abs(parseFloat(b.getAttribute(attr)) - parseFloat(targetVal)) < 0.01) {
+          b.className = b.className.replace(/bg-surface-container-high text-on-surface-variant/g, 'bg-primary text-on-primary font-bold shadow-[0_0_12px_rgba(208,188,255,0.4)]');
+        } else {
+          b.className = b.className.replace(/bg-primary text-on-primary font-bold shadow-\[0_0_12px_rgba\(208,188,255,0.4\)\]/g, 'bg-surface-container-high text-on-surface-variant');
+        }
+      });
+    }
+
+    // Loan Category Presets
+    const loanTabs = document.querySelectorAll('.loan-tab-btn');
+    const loanConfig = {
+      home: { amount: 4500000, rate: 8.55, tenure: 20 },
+      car: { amount: 1200000, rate: 9.20, tenure: 5 },
+      personal: { amount: 500000, rate: 12.5, tenure: 3 },
+      education: { amount: 2000000, rate: 8.95, tenure: 8 }
+    };
+
+    loanTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        loanTabs.forEach(t => {
+          t.className = 'loan-tab-btn flex items-center gap-space-xs px-space-md py-space-xs rounded-full bg-surface-container-high/70 backdrop-blur-lg text-on-surface-variant hover:text-on-surface whitespace-nowrap active:scale-95 transition-all';
+        });
+        tab.className = 'loan-tab-btn flex items-center gap-space-xs px-space-md py-space-xs rounded-full bg-gradient-to-r from-tertiary-container via-primary-container to-secondary-container text-on-surface shadow-[0_0_18px_rgba(247,81,161,0.45)] whitespace-nowrap active:scale-95 transition-all';
+
+        const key = tab.getAttribute('data-loan-preset');
+        const conf = loanConfig[key];
+        if (conf) {
+          if (!isYearMode) btnModeYr.click();
+          sliderAmount.value = conf.amount;
+          inputAmount.value = formatIndianCurrency(conf.amount);
+          sliderRate.value = conf.rate;
+          inputRate.value = conf.rate.toFixed(2);
+          sliderTenure.value = conf.tenure;
+          inputTenure.value = conf.tenure;
+          calculateEMI();
+        }
+      });
+    });
+
+    // Reset Action
+    btnReset.addEventListener('click', () => {
+      loanTabs[0].click();
+      calculateEMI();
+    });
+
+    // Confetti Particle Burst on Save
+    btnSave.addEventListener('click', () => {
+      triggerQuantumBurst();
+    });
+
+    function triggerQuantumBurst() {
+      const colors = ['#d0bcff', '#4cd7f6', '#ffb0cd', '#ffffff'];
+      for (let i = 0; i < 24; i++) {
+        const p = document.createElement('span');
+        p.style.position = 'absolute';
+        p.style.left = '50%';
+        p.style.top = '50%';
+        p.style.width = (Math.random() * 6 + 4) + 'px';
+        p.style.height = (Math.random() * 6 + 4) + 'px';
+        p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        p.style.borderRadius = '50%';
+        p.style.pointerEvents = 'none';
+        p.style.boxShadow = '0 0 8px ' + p.style.backgroundColor;
+        
+        const angle = Math.random() * 2 * Math.PI;
+        const velocity = Math.random() * 80 + 30;
+        const dx = Math.cos(angle) * velocity;
+        const dy = Math.sin(angle) * velocity;
+
+        p.style.transition = 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease';
+        p.style.transform = 'translate(-50%, -50%) scale(1)';
+        confettiAnchor.appendChild(p);
+
+        requestAnimationFrame(() => {
+          p.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px)) scale(0)';
+          p.style.opacity = '0';
+        });
+
+        setTimeout(() => p.remove(), 650);
+      }
+    }
+
+    // Initial Trigger
+    calculateEMI();
+  })();
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface-container-lowest/80 backdrop-blur-xl shadow-[0_-4px_24px_rgba(0,0,0,0.35)]" data-active-classes="text-secondary"><div class="flex justify-around items-center h-20 px-space-xs"><a aria-current="page" class="flex flex-col items-center justify-center gap-space-2xs min-w-[56px] min-h-[44px] transition-colors text-secondary" data-path="calculator-dashboard" href="#"><span class="material-symbols-outlined text-[24px]">calculate</span><span class="font-label-caps text-label-caps">Compute</span></a><a class="flex flex-col items-center justify-center gap-space-2xs min-w-[56px] min-h-[44px] text-on-surface-variant transition-colors" data-path="amortization-schedule" href="#"><span class="material-symbols-outlined text-[24px]">data_exploration</span><span class="font-label-caps text-label-caps">Schedule</span></a><a class="flex flex-col items-center justify-center gap-space-2xs min-w-[56px] min-h-[44px] text-on-surface-variant transition-colors" data-path="loan-comparison" href="#"><span class="material-symbols-outlined text-[24px]">compare_arrows</span><span class="font-label-caps text-label-caps">Compare</span></a><a class="flex flex-col items-center justify-center gap-space-2xs min-w-[56px] min-h-[44px] text-on-surface-variant transition-colors" data-path="saved-portfolios" href="#"><span class="material-symbols-outlined text-[24px]">folder_special</span><span class="font-label-caps text-label-caps">Saved</span></a></div></nav></body></html>

@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">EMI Calculator</string>
+    <string name="app_title">EMI Calculator</string>
+    <string name="app_subtitle">Calculate your monthly loan payments easily.</string>
+    
+    <!-- Field Labels -->
+    <string name="label_loan_amount">Loan Amount (₹)</string>
+    <string name="hint_loan_amount">Enter loan amount</string>
+    <string name="label_interest_rate">Annual Interest Rate (%)</string>
+    <string name="hint_interest_rate">Enter annual interest rate</string>
+    <string name="label_loan_tenure">Loan Tenure (Years)</string>
+    <string name="hint_loan_tenure">Enter loan duration</string>
+    
+    <!-- Buttons -->
+    <string name="btn_calculate">Calculate EMI</string>
+    <string name="btn_reset">Reset</string>
+    
+    <!-- Results -->
+    <string name="result_section_title">Calculation Summary</string>
+    <string name="label_monthly_emi">Monthly EMI</string>
+    <string name="label_total_interest">Total Interest Payable</string>
+    <string name="label_total_payment">Total Payment</string>
+    <string name="default_currency_zero">₹ 0.00</string>
+    
+    <!-- Errors -->
+    <string name="error_empty_amount">Please enter loan amount</string>
+    <string name="error_invalid_amount">Loan amount must be greater than zero</string>
+    <string name="error_empty_rate">Please enter annual interest rate</string>
+    <string name="error_invalid_rate">Interest rate must be zero or greater</string>
+    <string name="error_empty_tenure">Please enter loan tenure</string>
+    <string name="error_invalid_tenure">Tenure must be a positive whole number</string>
+</resources>

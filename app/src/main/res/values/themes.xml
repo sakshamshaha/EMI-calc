@@ -1,0 +1,12 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme with dark window background to prevent launch flash -->
+    <style name="Base.Theme.EMICalculatorApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/canvas_dark</item>
+        <item name="android:statusBarColor">@color/canvas_dark</item>
+        <item name="android:navigationBarColor">@color/canvas_dark</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+    </style>
+
+    <style name="Theme.EMICalculatorApp" parent="Base.Theme.EMICalculatorApp" />
+</resources>
