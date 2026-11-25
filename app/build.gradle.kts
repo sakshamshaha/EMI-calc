@@ -35,6 +35,9 @@ android {
     buildFeatures {
         compose = true
     }
+    sourceSets {
+        getByName("androidTest").assets.srcDirs("$projectDir/schemas")
+    }
 }
 
 ksp {
