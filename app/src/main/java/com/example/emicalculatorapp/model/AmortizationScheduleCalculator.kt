@@ -129,7 +129,7 @@ object AmortizationScheduleCalculator {
         monthlyEMI: Double,
         totalMonths: Int
     ): List<AmortizationMilestone> {
-        val totalYears = (totalMonths / 12).coerceAtLeast(1)
+        val totalYears = ((totalMonths + 11) / 12).coerceAtLeast(1)
         val currentCalendarYear = Calendar.getInstance().get(Calendar.YEAR)
 
         val milestoneYears = listOf(1, 5, 10, totalYears)
@@ -142,7 +142,7 @@ object AmortizationScheduleCalculator {
             val startMonth = ((yr - 1) * 12)
 
             // Closed-form remaining balance (O(1) calculation)
-            val balanceEnd = calculateRemainingBalance(principal, monthlyRate, monthlyEMI, endMonth)
+            val balanceEnd = if (endMonth >= totalMonths) 0.0 else calculateRemainingBalance(principal, monthlyRate, monthlyEMI, endMonth)
             val balanceStart = calculateRemainingBalance(principal, monthlyRate, monthlyEMI, startMonth)
 
             val principalPaidInYear = (balanceStart - balanceEnd).coerceAtLeast(0.0)

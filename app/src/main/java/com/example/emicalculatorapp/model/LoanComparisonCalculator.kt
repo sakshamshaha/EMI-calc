@@ -7,11 +7,11 @@ object LoanComparisonCalculator {
 
     fun computeLoanSummary(input: LoanInputState): LoanSummary {
         val totalMonths = if (input.isYearMode) input.tenureValue * 12 else input.tenureValue
-        if (input.amount <= 0.0 || input.rate <= 0.0 || totalMonths <= 0) {
+        if (input.amount <= 0.0 || input.rate < 0.0 || totalMonths <= 0) {
             return LoanSummary(
-                amount = input.amount,
-                rate = input.rate,
-                tenureValue = input.tenureValue,
+                amount = input.amount.coerceAtLeast(0.0),
+                rate = input.rate.coerceAtLeast(0.0),
+                tenureValue = input.tenureValue.coerceAtLeast(0),
                 isYearMode = input.isYearMode,
                 totalMonths = totalMonths.coerceAtLeast(1),
                 monthlyEMI = 0.0,
@@ -23,6 +23,35 @@ object LoanComparisonCalculator {
                 principalSharePercent = 100f,
                 interestSharePercent = 0f,
                 feeSharePercent = 0f
+            )
+        }
+
+        if (input.rate == 0.0) {
+            val monthlyEMI = input.amount / totalMonths
+            val totalPayment = input.amount
+            val totalInterest = 0.0
+            val processingFeeAmount = input.amount * (input.processingFeePercent / 100.0)
+            val totalCost = totalPayment + processingFeeAmount
+
+            val grandTotal = totalCost.coerceAtLeast(1.0)
+            val principalShare = ((input.amount / grandTotal) * 100f).toFloat().coerceIn(0f, 100f)
+            val feeShare = ((processingFeeAmount / grandTotal) * 100f).toFloat().coerceIn(0f, 100f)
+
+            return LoanSummary(
+                amount = input.amount,
+                rate = 0.0,
+                tenureValue = input.tenureValue,
+                isYearMode = input.isYearMode,
+                totalMonths = totalMonths,
+                monthlyEMI = monthlyEMI,
+                totalInterest = 0.0,
+                totalPayment = totalPayment,
+                processingFeePercent = input.processingFeePercent,
+                processingFeeAmount = processingFeeAmount,
+                totalCost = totalCost,
+                principalSharePercent = principalShare,
+                interestSharePercent = 0f,
+                feeSharePercent = feeShare
             )
         }
 

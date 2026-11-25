@@ -58,6 +58,7 @@ sealed class NavDestination(
     )
 
     companion object {
-        val items = listOf(Calculate, Schedule, Compare, Tools, Saved)
+        val items: List<NavDestination>
+            get() = listOf(Calculate, Schedule, Compare, Tools, Saved)
     }
 }

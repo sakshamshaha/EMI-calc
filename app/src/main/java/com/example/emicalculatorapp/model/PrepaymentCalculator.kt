@@ -19,7 +19,26 @@ object PrepaymentCalculator {
         isYears: Boolean,
         params: PrepaymentParams
     ): PrepaymentSimulationResult {
-        val totalMonths = if (isYears) tenure * 12 else tenure
+        val totalMonths = (if (isYears) tenure * 12 else tenure).coerceAtLeast(1)
+        if (principal <= 0.0 || annualRate < 0.0) {
+            return PrepaymentSimulationResult(
+                originalMonths = totalMonths,
+                newMonths = totalMonths,
+                monthsSaved = 0,
+                yearsSaved = 0,
+                remainingMonthsSaved = 0,
+                newTenureYears = totalMonths / 12,
+                newTenureMonths = totalMonths % 12,
+                originalTotalInterest = 0.0,
+                newTotalInterest = 0.0,
+                interestSaved = 0.0,
+                originalTotalPayment = principal.coerceAtLeast(0.0),
+                newTotalPayment = principal.coerceAtLeast(0.0),
+                paymentSaved = 0.0,
+                chartPoints = listOf(PrepaymentPoint(0, principal.coerceAtLeast(0.0), principal.coerceAtLeast(0.0))),
+                milestones = PrepaymentMilestones(1, 1, 1, 1)
+            )
+        }
         val monthlyRate = annualRate / 12.0 / 100.0
 
         val baseEMI = if (monthlyRate == 0.0) {

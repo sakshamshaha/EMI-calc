@@ -27,6 +27,7 @@ import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.emicalculatorapp.data.settings.NumberFormatStyle
 import com.example.emicalculatorapp.data.settings.SettingsRepository
@@ -35,8 +36,10 @@ import com.example.emicalculatorapp.ui.navigation.MainAppScaffold
 import com.example.emicalculatorapp.ui.theme.EMIverseTheme
 import com.example.emicalculatorapp.ui.theme.LocalReduceMotion
 import com.example.emicalculatorapp.viewmodel.EMIViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 enum class ScreenState {
     GET_STARTED,
@@ -46,41 +49,17 @@ enum class ScreenState {
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashScreen = installSplashScreen()
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        configureHighRefreshRate()
 
         val settingsRepository = SettingsRepository(applicationContext)
-
-        // Keep splash visible until DataStore has resolved first-launch preference
-        var isDataStoreReady by mutableStateOf(false)
-        splashScreen.setKeepOnScreenCondition { !isDataStoreReady }
-
-        splashScreen.setOnExitAnimationListener { splashScreenView ->
-            // Short 200ms scale/fade exit animation
-            val fadeOut = ObjectAnimator.ofFloat(splashScreenView.view, View.ALPHA, 1f, 0f).apply {
-                duration = 200L
-                interpolator = FastOutSlowInInterpolator()
-                doOnEnd { splashScreenView.remove() }
-            }
-            fadeOut.start()
-        }
 
         setContent {
             val coroutineScope = rememberCoroutineScope()
             val sharedViewModel: EMIViewModel = viewModel()
 
-            val firstLaunchFlow = remember(settingsRepository) {
-                settingsRepository.isFirstLaunchFlow.map { it as Boolean? }
-            }
-            val isFirstLaunchNullable by firstLaunchFlow.collectAsStateWithLifecycle(initialValue = null)
-
-            LaunchedEffect(isFirstLaunchNullable) {
-                if (isFirstLaunchNullable != null) {
-                    isDataStoreReady = true
-                }
-            }
+            val isFirstLaunchNullable by settingsRepository.isFirstLaunchFlow.collectAsStateWithLifecycle(initialValue = null)
 
             val effectsLevel by settingsRepository.effectsLevelFlow.collectAsStateWithLifecycle(initialValue = settingsRepository.defaultEffectsLevel)
             val numberFormat by settingsRepository.numberFormatFlow.collectAsStateWithLifecycle(initialValue = NumberFormatStyle.INDIAN)

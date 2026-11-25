@@ -1,11 +1,13 @@
 package com.example.emicalculatorapp.data.report
 
+import android.app.PendingIntent
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import androidx.core.content.FileProvider
 import com.example.emicalculatorapp.config.SupportConfig
 import com.example.emicalculatorapp.data.database.ReportEntity
@@ -41,13 +43,27 @@ class EmailReportSender : ReportSender {
             }
         }
 
-        val chooser = Intent.createChooser(emailIntent, "Send Problem Report via Email").apply {
+        val receiverIntent = Intent(context, ChosenReportReceiver::class.java).apply {
+            putExtra(ChosenReportReceiver.EXTRA_REPORT_ID, report.id)
+        }
+        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            (report.id and 0x7FFFFFFF).toInt(),
+            receiverIntent,
+            flags
+        )
+
+        val chooser = Intent.createChooser(emailIntent, "Send Problem Report via Email", pendingIntent.intentSender).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
 
         try {
             context.startActivity(chooser)
-            onOpenedInEmail()
         } catch (e: ActivityNotFoundException) {
             copyToClipboard(context, fullBody)
             onNoEmailApp(fullBody)

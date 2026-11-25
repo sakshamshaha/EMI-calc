@@ -103,7 +103,15 @@ fun ReportScreenshotSection(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         val bitmap = remember(screenshotPath) {
-                            BitmapFactory.decodeFile(screenshotPath)
+                            try {
+                                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                                BitmapFactory.decodeFile(screenshotPath, bounds)
+                                val sampleSize = (bounds.outWidth / 96).coerceAtLeast(bounds.outHeight / 96).coerceAtLeast(1)
+                                val opts = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+                                BitmapFactory.decodeFile(screenshotPath, opts)
+                            } catch (_: Exception) {
+                                null
+                            }
                         }
                         if (bitmap != null) {
                             Image(

@@ -39,7 +39,7 @@ class ReportsState(
     private val _includeDiagnostics = MutableStateFlow(true)
     val includeDiagnostics: StateFlow<Boolean> = _includeDiagnostics.asStateFlow()
 
-    private val _includeLoanInputs = MutableStateFlow(true)
+    private val _includeLoanInputs = MutableStateFlow(false)
     val includeLoanInputs: StateFlow<Boolean> = _includeLoanInputs.asStateFlow()
 
     private val _validationError = MutableStateFlow<String?>(null)
@@ -96,6 +96,14 @@ class ReportsState(
     fun deleteReport(report: ReportEntity, onDeleted: () -> Unit = {}) {
         scope.launch {
             repository.deleteReport(report)
+            report.screenshotPath?.let { path ->
+                try {
+                    val file = java.io.File(path)
+                    if (file.exists()) {
+                        file.delete()
+                    }
+                } catch (_: Exception) {}
+            }
             onDeleted()
         }
     }
